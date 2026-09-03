@@ -62,16 +62,6 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
         zIndex: 1000
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            backgroundColor: 'var(--secondary-600)',
-            borderRadius: '8px',
-            padding: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <ShieldCheck size={22} color="#ffffff" />
-          </div>
           <div>
             <h1 style={{ fontSize: '18px', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
               NERAKSH
@@ -89,7 +79,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
             alignItems: 'center',
             gap: '8px',
             backgroundColor: 'var(--primary-800)',
-            borderRadius: '6px',
+            borderRadius: '4px',
             padding: '6px 14px',
             fontSize: '12px',
             fontWeight: 700,
@@ -125,7 +115,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
                 gap: '8px',
                 backgroundColor: 'var(--primary-800)',
                 padding: '6px 12px',
-                borderRadius: '6px',
+                borderRadius: '4px',
                 border: '1px solid var(--primary-700)'
               }}>
                 <div style={{
@@ -159,7 +149,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
                   border: '1px solid var(--primary-700)',
                   color: '#ffffff',
                   padding: '6px 10px',
-                  borderRadius: '6px',
+                  borderRadius: '4px',
                   fontSize: '12px',
                   cursor: 'pointer',
                   display: 'flex',
@@ -201,12 +191,12 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
         }}>
           <div style={{
             backgroundColor: '#ffffff',
-            borderRadius: '12px',
+            borderRadius: '0px',
             width: '450px',
             maxWidth: '90%',
             overflow: 'hidden',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-            animation: 'fadeIn 0.2s ease-out'
+            animation: 'fadeIn 0.2s ease-out',
+            border: '1px solid var(--neutral-300)'
           }}>
             <div style={{
               backgroundColor: 'var(--primary-900)',
@@ -243,7 +233,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
                     style={{
                       border: selectedRole === 'admin' ? '2px solid var(--primary-600)' : '1px solid var(--neutral-300)',
                       backgroundColor: selectedRole === 'admin' ? 'var(--primary-50)' : '#ffffff',
-                      borderRadius: '8px',
+                      borderRadius: '0px',
                       padding: '12px 10px',
                       cursor: 'pointer',
                       display: 'flex',
@@ -269,7 +259,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
                     style={{
                       border: selectedRole === 'user' ? '2px solid var(--primary-600)' : '1px solid var(--neutral-300)',
                       backgroundColor: selectedRole === 'user' ? 'var(--primary-50)' : '#ffffff',
-                      borderRadius: '8px',
+                      borderRadius: '0px',
                       padding: '12px 10px',
                       cursor: 'pointer',
                       display: 'flex',
@@ -295,7 +285,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
                     style={{
                       border: selectedRole === 'citizen' ? '2px solid var(--secondary-600)' : '1px solid var(--neutral-300)',
                       backgroundColor: selectedRole === 'citizen' ? 'var(--secondary-50)' : '#ffffff',
-                      borderRadius: '8px',
+                      borderRadius: '0px',
                       padding: '12px 10px',
                       cursor: 'pointer',
                       display: 'flex',
@@ -324,7 +314,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
                   style={{
                     width: '100%',
                     padding: '10px 12px',
-                    borderRadius: '6px',
+                    borderRadius: '4px',
                     border: '1px solid var(--neutral-300)',
                     fontSize: '13px',
                     fontWeight: 600,
@@ -350,7 +340,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
                 </select>
               </div>
 
-              <div style={{ backgroundColor: 'var(--neutral-100)', borderRadius: '6px', padding: '12px', fontSize: '12px', color: 'var(--neutral-700)' }}>
+              <div style={{ backgroundColor: 'var(--neutral-100)', borderRadius: '0px', padding: '12px', fontSize: '12px', color: 'var(--neutral-700)' }}>
                 <strong>Role Access Rights:</strong>
                 <ul style={{ paddingLeft: '18px', marginTop: '4px', margin: 0 }}>
                   {selectedRole === 'admin' && (

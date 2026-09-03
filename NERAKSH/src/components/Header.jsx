@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, MapPinned, UserCheck, Activity, User, LogIn, Lock, LogOut, Building, ShieldAlert, CheckCircle } from 'lucide-react';
+import { ShieldCheck, MapPinned, UserCheck, Activity, User, LogIn, Lock, LogOut, Building, ShieldAlert, CheckCircle, Globe } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function Header({ currentRole, setRole, currentUser, setCurrentUser }) {
+  const { language, setLanguage, languages, t } = useLanguage();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState(currentRole || 'admin');
   const [users, setUsers] = useState([]);
@@ -116,6 +118,47 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
             )}
           </div>
 
+          {/* Language Selector */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            backgroundColor: currentRole === 'citizen' ? '#113552' : 'var(--primary-800)',
+            borderRadius: '6px',
+            padding: '5px 10px',
+            border: currentRole === 'citizen' ? '1px solid var(--secondary-500)' : '1px solid var(--primary-700)',
+            boxShadow: currentRole === 'citizen' ? '0 0 8px rgba(45, 212, 191, 0.2)' : 'none',
+            transition: 'all 0.2s ease'
+          }}>
+            <Globe size={15} color={currentRole === 'citizen' ? '#2dd4bf' : 'var(--secondary-400)'} />
+            <select
+              id="neraksh-language-select"
+              aria-label={t('ui.language_selector')}
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              style={{
+                backgroundColor: 'transparent',
+                color: '#ffffff',
+                border: 'none',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                outline: 'none',
+                paddingRight: '4px'
+              }}
+            >
+              {languages.map((l) => (
+                <option
+                  key={l.code}
+                  value={l.code}
+                  style={{ backgroundColor: '#0f2747', color: '#ffffff' }}
+                >
+                  {l.native} ({l.label})
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* User Profile / Sign In Action */}
           {currentUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -153,7 +196,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
               </div>
               <button
                 onClick={() => setShowAuthModal(true)}
-                title="Switch Role / Sign In"
+                title={t('ui.switch_profile')}
                 style={{
                   backgroundColor: 'var(--primary-800)',
                   border: '1px solid var(--primary-700)',
@@ -168,7 +211,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
                 }}
               >
                 <LogIn size={14} />
-                Switch Profile
+                {t('ui.switch_profile')}
               </button>
             </div>
           ) : (
@@ -178,7 +221,7 @@ export default function Header({ currentRole, setRole, currentUser, setCurrentUs
               style={{ fontSize: '13px', padding: '6px 14px' }}
             >
               <LogIn size={14} />
-              Sign In / Auth
+              {t('ui.sign_in')}
             </button>
           )}
         </div>

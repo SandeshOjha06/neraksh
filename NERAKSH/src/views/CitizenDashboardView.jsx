@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
 import {
@@ -24,6 +25,7 @@ import {
 
 export default function CitizenDashboardView({ currentUser }) {
   const [activeNav, setActiveNav] = useState('home');
+  const { t, getSeverityLabel } = useLanguage();
   const [isOnline, setIsOnline] = useState(true);
   const [syncStatus, setSyncStatus] = useState('Synced (Live)');
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
@@ -36,18 +38,24 @@ export default function CitizenDashboardView({ currentUser }) {
   const [submittedReports, setSubmittedReports] = useState([
     {
       id: 1,
+      categoryKey: 'incident.category_slope_cracks',
       category: 'Slope Cracks Observed',
       location: 'Near Mangan Helipad Road',
-      time: 'Today, 08:30 AM',
+      timeDayKey: 'incident.today',
+      timeStr: '08:30 AM',
+      statusKey: 'incident.status_synced',
       status: 'Synced to NDMA Grid',
       mediaCount: 2,
       riskLevel: 'Moderate'
     },
     {
       id: 2,
+      categoryKey: 'incident.category_debris_flow',
       category: 'Debris Flow on Road',
       location: 'Sohra Escarpment Pass',
-      time: 'Yesterday, 04:15 PM',
+      timeDayKey: 'incident.yesterday',
+      timeStr: '04:15 PM',
+      statusKey: 'incident.status_pending_sync',
       status: 'Pending Field Sync',
       mediaCount: 1,
       riskLevel: 'High'
@@ -61,10 +69,11 @@ export default function CitizenDashboardView({ currentUser }) {
   const [inputQuery, setInputQuery] = useState('');
 
   // Notifications State
+  // Static notifications use translation keys so they update when language changes
   const [notifications, setNotifications] = useState([
-    { id: 1, title: 'Heavy Rainfall Warning', desc: 'Sikkim North District IMD Alert: 120mm expected over next 24 hours.', time: '10m ago', unread: true },
-    { id: 2, title: 'Local Safety Status', desc: 'Your current location (Gangtok Zone B) is categorized as MODERATE RISK.', time: '1h ago', unread: true },
-    { id: 3, title: 'Offline Data Cached', desc: 'Offline GIS maps for Sikkim & North Bengal stored locally.', time: '3h ago', unread: false }
+    { id: 1, titleKey: 'notification.heavy_rainfall_warning', descKey: 'notification.heavy_rainfall_desc', time: '10m ago', unread: true },
+    { id: 2, titleKey: 'notification.local_safety_status', descKey: 'notification.local_safety_desc', time: '1h ago', unread: true },
+    { id: 3, titleKey: 'notification.offline_data_cached', descKey: 'notification.offline_cached_desc', time: '3h ago', unread: false }
   ]);
 
   React.useEffect(() => {
@@ -73,10 +82,12 @@ export default function CitizenDashboardView({ currentUser }) {
         const res = await fetch('http://localhost:8000/api/alerts');
         if (res.ok) {
           const data = await res.json();
+          // Store structured fields — title/desc composed at render time using selected language
           const apiNotifications = data.map(a => ({
             id: `api-${a.id}`,
-            title: `[NDMA] ${a.severity.toUpperCase()} LANDSLIDE RISK ALERT`,
-            desc: `${a.message} (Location: ${a.latitude.toFixed(4)}°N, ${a.longitude.toFixed(4)}°E)`,
+            severity: a.severity,
+            latitude: a.latitude,
+            longitude: a.longitude,
             time: new Date(a.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             unread: true,
             isCritical: a.severity === 'Critical'
@@ -153,7 +164,8 @@ export default function CitizenDashboardView({ currentUser }) {
       category: selectedCategory,
       location: locationName,
       time: 'Just Now',
-      status: isOnline ? 'Synced to NDMA Grid' : 'Saved Offline (Pending Sync)',
+      statusKey: isOnline ? 'incident.status_synced' : 'incident.status_pending_sync',
+      status: isOnline ? 'Synced to NDMA Grid' : 'Pending Field Sync',
       mediaCount: mediaFiles.length,
       riskLevel: 'High'
     };
@@ -177,7 +189,7 @@ export default function CitizenDashboardView({ currentUser }) {
     setTimeout(() => {
       setPendingSyncCount(0);
       setSyncStatus('Synced (Live)');
-      setSubmittedReports(prev => prev.map(r => ({ ...r, status: 'Synced to NDMA Grid' })));
+      setSubmittedReports(prev => prev.map(r => ({ ...r, statusKey: 'incident.status_synced', status: 'Synced to NDMA Grid' })));
     }, 1200);
   };
 
@@ -219,14 +231,14 @@ export default function CitizenDashboardView({ currentUser }) {
           </div>
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
             {[
-              { id: 'home', label: 'Home Overview', icon: Home },
-              { id: 'local_risk', label: 'Local Risk Map', icon: ShieldAlert },
-              { id: 'reporting', label: 'Incident Reporting', icon: Camera },
-              { id: 'media', label: 'Media Upload', icon: Upload },
-              { id: 'offline_sync', label: 'Offline & Sync', icon: RefreshCw, badge: pendingSyncCount > 0 ? pendingSyncCount : null },
-              { id: 'ai_assistant', label: 'AI Safety Assistant', icon: Bot },
-              { id: 'notifications', label: 'Notifications', icon: Bell, badge: notifications.filter(n=>n.unread).length },
-              { id: 'profile', label: 'Citizen Profile', icon: User }
+              { id: 'home', label: t('navigation.home'), icon: Home },
+              { id: 'local_risk', label: t('navigation.local_risk'), icon: ShieldAlert },
+              { id: 'reporting', label: t('navigation.reporting'), icon: Camera },
+              { id: 'media', label: t('navigation.media'), icon: Upload },
+              { id: 'offline_sync', label: t('navigation.offline_sync'), icon: RefreshCw, badge: pendingSyncCount > 0 ? pendingSyncCount : null },
+              { id: 'ai_assistant', label: t('navigation.ai_assistant'), icon: Bot },
+              { id: 'notifications', label: t('navigation.notifications'), icon: Bell, badge: notifications.filter(n=>n.unread).length },
+              { id: 'profile', label: t('navigation.profile'), icon: User }
             ].map(item => {
               const Icon = item.icon;
               const isActive = activeNav === item.id;
@@ -340,18 +352,19 @@ export default function CitizenDashboardView({ currentUser }) {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '14px' }}>
                       <AlertTriangle size={18} />
-                      EMERGENCY ALERT ISSUED BY NDMA
+                      {t('notification.emergency_alert_ndma')}
                     </div>
                     {notifications.filter(n => String(n.id).startsWith('api-')).map(n => (
                       <div key={n.id} style={{ fontSize: '13px', fontWeight: 500, lineHeight: '1.4' }}>
-                        <strong>{n.title}:</strong> {n.desc}
+                        <strong>[NDMA] {getSeverityLabel(n.severity).toUpperCase()} {t('notification.landslide_risk_alert')}:</strong>{' '}
+                        {t('notification.landslide_warning')} ({t('alert.location_label')}: {n.latitude.toFixed(4)}°N, {n.longitude.toFixed(4)}°E)
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div>
                     <span className="risk-chip risk-moderate" style={{ marginBottom: '8px' }}>
-                      ZONE STATUS: NO CRITICAL EMERGENCIES
+                      {t('ui.zone_no_emergency')}
                     </span>
                   </div>
                 )}
@@ -369,7 +382,7 @@ export default function CitizenDashboardView({ currentUser }) {
                 style={{ backgroundColor: 'var(--risk-critical)', padding: '12px 20px', fontSize: '14px' }}
               >
                 <Camera size={18} />
-                Report Emergency Hill Failure
+                {t('ui.report_emergency')}
               </button>
             </div>
 
@@ -380,8 +393,8 @@ export default function CitizenDashboardView({ currentUser }) {
                 style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '10px', padding: '16px', cursor: 'pointer' }}
               >
                 <ShieldAlert size={24} color="var(--primary-600)" style={{ marginBottom: '8px' }} />
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>Local Risk Map</div>
-                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>Check 30km neighborhood grid susceptibility</div>
+                <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('ui.quick_action_grid_risk')}</div>
+                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>{t('ui.quick_action_grid_risk_desc')}</div>
               </div>
 
               <div
@@ -389,8 +402,8 @@ export default function CitizenDashboardView({ currentUser }) {
                 style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '10px', padding: '16px', cursor: 'pointer' }}
               >
                 <Camera size={24} color="var(--secondary-600)" style={{ marginBottom: '8px' }} />
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>Incident Reporting</div>
-                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>Report slope cracks or road blockages</div>
+                <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('ui.quick_action_grid_report')}</div>
+                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>{t('ui.quick_action_grid_report_desc')}</div>
               </div>
 
               <div
@@ -398,8 +411,8 @@ export default function CitizenDashboardView({ currentUser }) {
                 style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '10px', padding: '16px', cursor: 'pointer' }}
               >
                 <RefreshCw size={24} color="var(--risk-high)" style={{ marginBottom: '8px' }} />
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>Offline State & Sync</div>
-                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>{pendingSyncCount} pending reports stored offline</div>
+                <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('ui.quick_action_grid_offline')}</div>
+                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>{t('ui.quick_action_grid_offline_desc', { count: pendingSyncCount })}</div>
               </div>
 
               <div
@@ -407,31 +420,72 @@ export default function CitizenDashboardView({ currentUser }) {
                 style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '10px', padding: '16px', cursor: 'pointer' }}
               >
                 <Bot size={24} color="var(--primary-700)" style={{ marginBottom: '8px' }} />
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>AI Safety Assistant</div>
-                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>Get instant SOP disaster guidance</div>
+                <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('ui.quick_action_grid_ai')}</div>
+                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>{t('ui.quick_action_grid_ai_desc')}</div>
               </div>
             </div>
 
             {/* Recent Local Reports */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '10px', padding: '20px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px' }}>Your Reported Incidents</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px' }}>{t('ui.your_reported_incidents')}</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {submittedReports.map(rep => (
-                  <div key={rep.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: 'var(--neutral-50)', borderRadius: '8px', border: '1px solid var(--neutral-200)' }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '13px' }}>{rep.category}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>{rep.location} — {rep.time}</div>
+                {submittedReports.map(rep => {
+                  const categoryName = rep.categoryKey
+                    ? t(rep.categoryKey)
+                    : (rep.category === 'Slope Cracks Observed'
+                        ? t('incident.category_slope_cracks')
+                        : rep.category === 'Debris Flow on Road'
+                          ? t('incident.category_debris_flow')
+                          : rep.category === 'Rockfall / Minor Landslide'
+                            ? t('incident.category_rockfall')
+                            : rep.category === 'Major Slope Failure'
+                              ? t('incident.category_major_failure')
+                              : rep.category === 'Road Blockade due to Debris'
+                                ? t('incident.category_road_blockade')
+                                : rep.category === 'Creep / Ground Cracks'
+                                  ? t('incident.category_creep_cracks')
+                                  : rep.category === 'Mudflow / Flash Flood'
+                                    ? t('incident.category_mudflow')
+                                    : rep.category);
+
+                  const statusName = rep.statusKey
+                    ? t(rep.statusKey)
+                    : (rep.status?.includes('Synced')
+                        ? t('incident.status_synced')
+                        : t('incident.status_pending_sync'));
+
+                  let timeDisplay = rep.time;
+                  if (rep.timeDayKey && rep.timeStr) {
+                    timeDisplay = `${t(rep.timeDayKey)}, ${rep.timeStr}`;
+                  } else if (typeof rep.time === 'string') {
+                    if (rep.time.startsWith('Today')) {
+                      timeDisplay = rep.time.replace('Today', t('incident.today'));
+                    } else if (rep.time.startsWith('Yesterday')) {
+                      timeDisplay = rep.time.replace('Yesterday', t('incident.yesterday'));
+                    } else if (rep.time === 'Just Now') {
+                      timeDisplay = t('incident.just_now');
+                    }
+                  }
+
+                  const isSynced = (rep.statusKey === 'incident.status_synced') || (rep.status?.includes('Synced'));
+
+                  return (
+                    <div key={rep.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: 'var(--neutral-50)', borderRadius: '8px', border: '1px solid var(--neutral-200)' }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--neutral-900)' }}>{categoryName}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--neutral-600)', marginTop: '2px' }}>{rep.location} — {timeDisplay}</div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: isSynced ? 'var(--risk-low)' : 'var(--risk-high)' }}>
+                          {statusName}
+                        </span>
+                        <span className={`risk-chip risk-${rep.riskLevel.toLowerCase()}`} style={{ fontWeight: 700, letterSpacing: '0.04em' }}>
+                          {getSeverityLabel(rep.riskLevel).toUpperCase()}
+                        </span>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: rep.status.includes('Synced') ? 'var(--risk-low)' : 'var(--risk-high)' }}>
-                        {rep.status}
-                      </span>
-                      <span className={`risk-chip risk-${rep.riskLevel.toLowerCase()}`}>
-                        {rep.riskLevel}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -511,11 +565,11 @@ export default function CitizenDashboardView({ currentUser }) {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
                 >
-                  <option value="Rockfall / Minor Landslide">Rockfall / Minor Landslide</option>
-                  <option value="Major Slope Failure">Major Slope Failure</option>
-                  <option value="Road Blockade due to Debris">Road Blockade due to Debris</option>
-                  <option value="Creep / Ground Cracks">Creep / Ground Cracks</option>
-                  <option value="Mudflow / Flash Flood">Mudflow / Flash Flood</option>
+                  <option value="Rockfall / Minor Landslide">{t('incident.category_rockfall')}</option>
+                  <option value="Major Slope Failure">{t('incident.category_major_failure')}</option>
+                  <option value="Road Blockade due to Debris">{t('incident.category_road_blockade')}</option>
+                  <option value="Creep / Ground Cracks">{t('incident.category_creep_cracks')}</option>
+                  <option value="Mudflow / Flash Flood">{t('incident.category_mudflow')}</option>
                 </select>
               </div>
 
@@ -736,31 +790,41 @@ export default function CitizenDashboardView({ currentUser }) {
         {/* NOTIFICATIONS */}
         {activeNav === 'notifications' && (
           <div style={{ maxWidth: '650px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Citizen Alert Center</h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 700 }}>{t('ui.citizen_alert_center')}</h2>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {notifications.map(notif => (
-                <div key={notif.id} style={{
-                  backgroundColor: notif.isCritical ? 'var(--risk-critical-bg)' : '#ffffff',
-                  borderLeft: notif.unread ? '4px solid var(--risk-critical)' : '1px solid var(--neutral-200)',
-                  border: notif.isCritical ? '1px solid var(--risk-critical)' : undefined,
-                  borderLeftWidth: notif.unread ? '4px' : '1px',
-                  borderRadius: '8px',
-                  padding: '14px 16px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start'
-                }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '14px', color: notif.isCritical ? 'var(--risk-critical)' : 'inherit' }}>
-                      {notif.title}
+              {notifications.map(notif => {
+                // API-sourced alerts have structured severity/lat/lon; static ones have titleKey/descKey
+                const isApiAlert = 'severity' in notif;
+                const displayTitle = isApiAlert
+                  ? `[NDMA] ${getSeverityLabel(notif.severity).toUpperCase()} ${t('notification.landslide_risk_alert')}`
+                  : t(notif.titleKey);
+                const displayDesc = isApiAlert
+                  ? `${t('notification.landslide_warning')} (${t('alert.location_label')}: ${notif.latitude.toFixed(4)}°N, ${notif.longitude.toFixed(4)}°E)`
+                  : t(notif.descKey);
+                return (
+                  <div key={notif.id} style={{
+                    backgroundColor: notif.isCritical ? 'var(--risk-critical-bg)' : '#ffffff',
+                    borderLeft: notif.unread ? '4px solid var(--risk-critical)' : '1px solid var(--neutral-200)',
+                    border: notif.isCritical ? '1px solid var(--risk-critical)' : undefined,
+                    borderLeftWidth: notif.unread ? '4px' : '1px',
+                    borderRadius: '8px',
+                    padding: '14px 16px',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start'
+                  }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '14px', color: notif.isCritical ? 'var(--risk-critical)' : 'inherit' }}>
+                        {displayTitle}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--neutral-600)', marginTop: '2px' }}>{displayDesc}</div>
                     </div>
-                    <div style={{ fontSize: '12px', color: 'var(--neutral-600)', marginTop: '2px' }}>{notif.desc}</div>
+                    <span style={{ fontSize: '10px', color: 'var(--neutral-400)' }}>{notif.time}</span>
                   </div>
-                  <span style={{ fontSize: '10px', color: 'var(--neutral-400)' }}>{notif.time}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

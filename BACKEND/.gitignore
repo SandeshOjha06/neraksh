@@ -1,5 +1,8 @@
-.venv
+venv/
+.venv/
 sql_app.db
 
 __pycache__
 .env
+__pycache__/
+*.pyc

@@ -57,6 +57,34 @@ def init_and_seed_db():
                 db.add(citizen_user)
                 db.commit()
             print("Database already initialized.")
+            
+        # Seed Infrastructure
+        infra = db.query(models.Infrastructure).first()
+        if not infra:
+            infra1 = models.Infrastructure(name="Teesta River Bridge NH10", type="Bridge", status="Operational", latitude=27.05, longitude=88.46)
+            infra2 = models.Infrastructure(name="Mangan Highway Sector C", type="Road", status="Degraded", latitude=27.50, longitude=88.53)
+            infra3 = models.Infrastructure(name="Gangtok Emergency Shelter Alpha", type="Shelter", status="Operational", latitude=27.34, longitude=88.62)
+            db.add_all([infra1, infra2, infra3])
+            db.commit()
+
+        # Seed Incidents
+        incident = db.query(models.Incident).first()
+        if not incident:
+            inc1 = models.Incident(category="Rockfall / Minor Landslide", description="Boulders on road, blocking single lane.", status="Verified", risk_level="Moderate", latitude=27.05, longitude=88.46)
+            inc2 = models.Incident(category="Major Slope Failure", description="Large section of hill collapsed, heavy debris.", status="Unverified", risk_level="High", latitude=27.50, longitude=88.53)
+            db.add_all([inc1, inc2])
+            db.commit()
+            db.refresh(inc1)
+            db.refresh(inc2)
+
+            # Seed FieldTasks
+            field_user = db.query(models.User).filter(models.User.username == "field_officer_1").first()
+            if field_user:
+                task1 = models.FieldTask(title="Clear Teesta Bridge Boulders", incident_id=inc1.id, assigned_to=field_user.id, status="Pending", priority="Medium")
+                task2 = models.FieldTask(title="Verify Mangan Highway Failure", incident_id=inc2.id, assigned_to=field_user.id, status="En Route", priority="High")
+                db.add_all([task1, task2])
+                db.commit()
+
     finally:
         db.close()
 

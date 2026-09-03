@@ -134,10 +134,50 @@ class IncidentVerifyRequest(BaseModel):
     notes: str
     severity: str
 
+class IncidentCreateRequest(BaseModel):
+    category: str
+    description: str
+    latitude: float
+    longitude: float
+    risk_level: str = "High"
+    location_name: str = ""
+
+@app.post("/api/incidents")
+def create_incident(req: IncidentCreateRequest, db: Session = Depends(database.get_db)):
+    desc = req.description
+    if req.location_name and req.location_name.strip():
+        desc = f"[{req.location_name.strip()}] {desc}"
+    
+    new_incident = models.Incident(
+        category=req.category,
+        description=desc,
+        status="Unverified",
+        risk_level=req.risk_level,
+        latitude=req.latitude,
+        longitude=req.longitude,
+    )
+    db.add(new_incident)
+    db.commit()
+    db.refresh(new_incident)
+    
+    return {
+        "status": "success",
+        "incident": {
+            "id": new_incident.id,
+            "category": new_incident.category,
+            "description": new_incident.description,
+            "status": new_incident.status,
+            "risk_level": new_incident.risk_level,
+            "lat": new_incident.latitude,
+            "lon": new_incident.longitude,
+            "timestamp": new_incident.timestamp
+        }
+    }
+
 @app.get("/api/field/situational")
 def get_situational_data(db: Session = Depends(database.get_db)):
     """Unified endpoint for map rendering of active incidents and infrastructure."""
-    incidents = db.query(models.Incident).all()
+    incidents = db.query(models.Incident).order_by(models.Incident.timestamp.desc()).all()
     infrastructure = db.query(models.Infrastructure).all()
     
     return {

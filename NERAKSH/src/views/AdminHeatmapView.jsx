@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
-import { ShieldAlert, AlertTriangle, Layers, MapPin, Bell, Clock } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, Layers, MapPin, Bell, Clock, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import GisRasterHeatmapLayer from '../components/GisRasterHeatmapLayer';
 
 // Key strategic monitoring locations across North Eastern Region (NER) India
@@ -89,14 +89,17 @@ export default function AdminHeatmapView() {
     avgScore: 0
   });
   const [alerts, setAlerts] = useState([]);
+  const [incidents, setIncidents] = useState([]);
+  const [sideTab, setSideTab] = useState('alerts'); // 'alerts' or 'incidents'
 
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        const [heatmapRes, alertsRes] = await Promise.all([
+        const [heatmapRes, alertsRes, sitRes] = await Promise.all([
           fetch('http://localhost:8000/api/heatmap/regional?step=1'),
-          fetch('http://localhost:8000/api/alerts')
+          fetch('http://localhost:8000/api/alerts'),
+          fetch('http://localhost:8000/api/field/situational')
         ]);
         
         if (heatmapRes.ok) {
@@ -122,6 +125,13 @@ export default function AdminHeatmapView() {
           const alertsJson = await alertsRes.json();
           setAlerts(alertsJson);
         }
+
+        if (sitRes.ok) {
+          const sitJson = await sitRes.json();
+          if (sitJson.incidents) {
+            setIncidents(sitJson.incidents);
+          }
+        }
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
       } finally {
@@ -130,7 +140,12 @@ export default function AdminHeatmapView() {
     }
 
     fetchData();
+    const intervalId = setInterval(fetchData, 5000);
+    return () => clearInterval(intervalId);
   }, []);
+
+  const unverifiedCount = incidents.filter(i => i.status === 'Unverified').length;
+  const verifiedCount = incidents.filter(i => i.status === 'Verified').length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', position: 'relative' }}>
@@ -170,12 +185,12 @@ export default function AdminHeatmapView() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
           <div style={{ backgroundColor: 'var(--primary-50)', padding: '10px', borderRadius: '8px' }}>
-            <MapPin size={20} color="var(--primary-600)" />
+            <FileText size={20} color="var(--primary-600)" />
           </div>
           <div>
-            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Monitored Spatial Cells</div>
+            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Citizen Incident Reports</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
-              {loading ? 'Loading...' : `${kpis.totalPoints.toLocaleString()} Grid Cells`}
+              {incidents.length} ({unverifiedCount} Pending)
             </div>
           </div>
         </div>
@@ -256,15 +271,49 @@ export default function AdminHeatmapView() {
               </Popup>
             </CircleMarker>
           ))}
+
+          {/* Live Citizen Reported Incidents Layer */}
+          {incidents.map((inc) => (
+            <CircleMarker
+              key={`admin-inc-${inc.id}`}
+              center={[inc.lat || 27.33, inc.lon || 88.61]}
+              radius={inc.status === 'Unverified' ? 14 : 10}
+              pathOptions={{
+                color: '#ffffff',
+                fillColor: inc.status === 'Unverified' ? '#C92A2A' : '#159447',
+                fillOpacity: 0.9,
+                weight: 3,
+                dashArray: inc.status === 'Unverified' ? '4, 4' : undefined
+              }}
+            >
+              <Popup>
+                <div style={{ width: '240px', padding: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: inc.status === 'Unverified' ? 'var(--risk-critical)' : 'var(--risk-low)', textTransform: 'uppercase' }}>
+                      CITIZEN REPORT • {inc.status}
+                    </span>
+                    <span className={`risk-chip risk-${(inc.risk_level || 'high').toLowerCase()}`}>
+                      {inc.risk_level || 'High'}
+                    </span>
+                  </div>
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 6px 0' }}>{inc.category}</h4>
+                  <p style={{ fontSize: '12px', color: 'var(--neutral-700)', margin: '0 0 8px 0', lineHeight: '1.4' }}>{inc.description}</p>
+                  <div style={{ fontSize: '11px', color: 'var(--neutral-500)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <MapPin size={12} /> Coordinates: {inc.lat?.toFixed(4)}°N, {inc.lon?.toFixed(4)}°E
+                  </div>
+                </div>
+              </Popup>
+            </CircleMarker>
+          ))}
         </MapContainer>
 
-        {/* Live Active Alerts Panel */}
+        {/* Live Active Alerts & Citizen Incidents Drawer Panel */}
         <div style={{
           position: 'absolute',
           top: '24px',
           right: '24px',
-          width: '320px',
-          maxHeight: '400px',
+          width: '360px',
+          maxHeight: '460px',
           backgroundColor: '#ffffff',
           border: '1px solid var(--neutral-300)',
           borderRadius: '12px',
@@ -274,53 +323,123 @@ export default function AdminHeatmapView() {
           flexDirection: 'column',
           overflow: 'hidden'
         }}>
+          {/* Header Tabs */}
           <div style={{
             backgroundColor: 'var(--primary-900)',
             color: '#ffffff',
-            padding: '12px 16px',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
+            borderBottom: '1px solid rgba(255,255,255,0.1)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '14px' }}>
-              <Bell size={18} color="var(--risk-critical)" />
-              Active Field Alerts
-            </div>
-            <div style={{ backgroundColor: 'var(--risk-critical)', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
-              {alerts.length} NEW
-            </div>
+            <button
+              onClick={() => setSideTab('alerts')}
+              style={{
+                flex: 1,
+                padding: '12px 14px',
+                border: 'none',
+                backgroundColor: sideTab === 'alerts' ? 'rgba(255,255,255,0.15)' : 'transparent',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                cursor: 'pointer'
+              }}
+            >
+              <Bell size={15} color="var(--risk-critical)" />
+              Alerts ({alerts.length})
+            </button>
+            <button
+              onClick={() => setSideTab('incidents')}
+              style={{
+                flex: 1,
+                padding: '12px 14px',
+                border: 'none',
+                backgroundColor: sideTab === 'incidents' ? 'rgba(255,255,255,0.15)' : 'transparent',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                cursor: 'pointer'
+              }}
+            >
+              <FileText size={15} color="var(--secondary-500)" />
+              Reports ({incidents.length})
+            </button>
           </div>
           
-          <div style={{ padding: '12px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {alerts.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--neutral-500)', fontSize: '13px' }}>
-                No active critical alerts
-              </div>
-            ) : (
-              alerts.map(alert => (
-                <div key={alert.id} style={{
-                  backgroundColor: 'var(--risk-critical-bg)',
-                  border: '1px solid var(--risk-critical)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--risk-critical)', textTransform: 'uppercase' }}>
-                      {alert.severity} RISK
-                    </span>
-                    <span style={{ fontSize: '10px', color: 'var(--neutral-600)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={12} />
-                      {new Date(alert.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--neutral-900)', marginBottom: '4px', lineHeight: '1.4' }}>
-                    {alert.message}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--neutral-600)' }}>
-                    Loc: {alert.latitude.toFixed(4)}°N, {alert.longitude.toFixed(4)}°E
-                  </div>
+          {/* Content Area */}
+          <div style={{ padding: '12px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+            {sideTab === 'alerts' && (
+              alerts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--neutral-500)', fontSize: '13px' }}>
+                  No active critical alerts
                 </div>
-              ))
+              ) : (
+                alerts.map(alert => (
+                  <div key={alert.id} style={{
+                    backgroundColor: 'var(--risk-critical-bg)',
+                    border: '1px solid var(--risk-critical)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--risk-critical)', textTransform: 'uppercase' }}>
+                        {alert.severity} RISK
+                      </span>
+                      <span style={{ fontSize: '10px', color: 'var(--neutral-600)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Clock size={12} />
+                        {new Date(alert.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--neutral-900)', marginBottom: '4px', lineHeight: '1.4' }}>
+                      {alert.message}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--neutral-600)' }}>
+                      Loc: {alert.latitude.toFixed(4)}°N, {alert.longitude.toFixed(4)}°E
+                    </div>
+                  </div>
+                ))
+              )
+            )}
+
+            {sideTab === 'incidents' && (
+              incidents.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--neutral-500)', fontSize: '13px' }}>
+                  No citizen incidents reported yet.
+                </div>
+              ) : (
+                incidents.map(inc => (
+                  <div key={inc.id} style={{
+                    backgroundColor: inc.status === 'Unverified' ? '#fff5f5' : '#f4fbf7',
+                    border: `1px solid ${inc.status === 'Unverified' ? 'var(--risk-critical)' : 'var(--risk-low)'}`,
+                    borderRadius: '8px',
+                    padding: '12px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: inc.status === 'Unverified' ? 'var(--risk-critical)' : 'var(--risk-low)' }}>
+                        {inc.status.toUpperCase()}
+                      </span>
+                      <span className={`risk-chip risk-${(inc.risk_level || 'high').toLowerCase()}`}>
+                        {inc.risk_level || 'High'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--neutral-900)', marginBottom: '4px' }}>
+                      {inc.category}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--neutral-700)', marginBottom: '6px', lineHeight: '1.4' }}>
+                      {inc.description}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--neutral-500)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <MapPin size={11} /> {inc.lat ? `${inc.lat.toFixed(3)}°N, ${inc.lon.toFixed(3)}°E` : 'Gangtok'}
+                    </div>
+                  </div>
+                ))
+              )
             )}
           </div>
         </div>
@@ -372,3 +491,4 @@ export default function AdminHeatmapView() {
     </div>
   );
 }
+

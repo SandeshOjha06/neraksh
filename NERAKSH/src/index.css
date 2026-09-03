@@ -54,12 +54,10 @@ body {
   flex-direction: column;
 }
 
-/* Custom leaflet map popup adjustments */
 .leaflet-popup-content-wrapper {
   background: #ffffff;
   border: 1px solid var(--neutral-200);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(15, 39, 71, 0.15);
+  border-radius: 0px;
   padding: 4px;
 }
 
@@ -71,43 +69,33 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .risk-low {
-  background-color: var(--risk-low-bg);
   color: var(--risk-low);
-  border: 1px solid rgba(21, 148, 71, 0.3);
 }
 
 .risk-moderate {
-  background-color: var(--risk-moderate-bg);
   color: var(--risk-moderate);
-  border: 1px solid rgba(217, 164, 65, 0.3);
 }
 
 .risk-high {
-  background-color: var(--risk-high-bg);
   color: var(--risk-high);
-  border: 1px solid rgba(229, 122, 23, 0.3);
 }
 
 .risk-critical {
-  background-color: var(--risk-critical-bg);
   color: var(--risk-critical);
-  border: 1px solid rgba(201, 42, 42, 0.3);
 }
 
 .btn-primary {
   background-color: var(--primary-600);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 8px 16px;
   font-weight: 600;
   font-size: 14px;
@@ -126,7 +114,7 @@ body {
   background-color: var(--neutral-100);
   color: var(--neutral-800);
   border: 1px solid var(--neutral-300);
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 8px 16px;
   font-weight: 500;
   font-size: 14px;

@@ -486,6 +486,46 @@ Use stroke icons with consistent visual weight.
 
 Do not use emojis such as `🚨`, `🌧️`, `📍`, `🤖`, `🔥`, or `✅` as UI icons.
 
+## Icon container rules — CRITICAL
+
+**Do NOT wrap icons in colored background containers.**
+
+This means:
+
+- no colored rounded rectangles behind icons
+- no tinted squares or circles used as icon backgrounds
+- no `backgroundColor` + `padding` + `borderRadius` wrappers around standalone icons
+- no gradient or semi-transparent fills behind icons
+
+Icons must sit directly inline with their accompanying text or label. The icon color itself can vary to communicate meaning, but the icon must not be placed inside a decorative container element.
+
+Forbidden pattern:
+
+```text
+┌──────────────┐
+│  ┌────┐      │
+│  │ 🛡️ │  KPI  │   ← icon inside a colored box — FORBIDDEN
+│  └────┘      │
+│  Label       │
+│  Value       │
+└──────────────┘
+```
+
+Correct pattern:
+
+```text
+┌──────────────┐
+│  🛡️ Label    │   ← icon sits inline with text — CORRECT
+│  Value       │
+└──────────────┘
+```
+
+The only exceptions where an icon may have a background shape:
+
+1. User avatar initials (circular, single letter)
+2. Map markers/pins (functional, not decorative)
+3. Interactive icon-only buttons that need a visible hit area
+
 Use semantic Lucide icons instead:
 
 ```text
@@ -662,27 +702,31 @@ Recommended hierarchy:
 6. recent activity
 7. secondary analytics
 
-## KPI cards
+## KPI display
 
-Use compact, information-rich cards.
+Use a compact, single-row **KPI strip** separated by vertical dividers — not individual floating cards.
 
-Example:
+Each KPI item contains:
+
+- an inline icon (no background container)
+- a label
+- a value
+- optional trend text
+
+Example layout:
 
 ```text
-12
-Active Alerts
-+2 since last update
+[icon] CRITICAL CELLS    |  [icon] HIGH RISK CELLS    |  [icon] REPORTS      |  [icon] AVG SCORE
+         1,204           |           3,576             |      12 (4 pending)  |       42.3%
 ```
 
-A KPI card may include:
+Rules:
 
-- icon
-- value
-- label
-- small trend
-- status
-
-Avoid giant numbers taking up half the screen.
+- Icons sit inline alongside the label text. No colored box behind the icon.
+- KPIs are separated by subtle vertical borders, not wrapped in individual card containers.
+- Do not give each KPI its own shadow, rounded rectangle, or background color.
+- The entire strip can be a single white surface with internal dividers.
+- Avoid giant numbers taking up half the screen.
 
 ---
 
@@ -692,15 +736,46 @@ Cards are containers for meaningful information, not the default wrapper for eve
 
 Use cards for:
 
-- summary metrics
 - alerts
 - grouped analytical content
 - selected location details
 - action panels
 
-Do not wrap every heading, button, and paragraph in a separate card.
+Do NOT use cards for:
 
-Default:
+- individual KPIs (use a KPI strip with dividers instead)
+- navigation shortcuts (use a simple list or inline links)
+- single-action buttons
+- items that only contain a label and an icon
+- wrapping every heading, button, and paragraph
+
+## Quick-action grids
+
+Do NOT create a grid of 3–4 cards where each card contains only an icon, a title, and a subtitle. This is a common AI-generated pattern that looks generic and wastes space.
+
+Prefer:
+
+- a compact button row with `[icon] label` style buttons
+- a simple inline list of text links
+- navigation sidebar items instead of duplicated action cards
+
+Forbidden pattern:
+
+```text
+┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
+│  [icon]  │  │  [icon]  │  │  [icon]  │  │  [icon]  │
+│  Title   │  │  Title   │  │  Title   │  │  Title   │
+│  desc    │  │  desc    │  │  desc    │  │  desc    │
+└──────────┘  └──────────┘  └──────────┘  └──────────┘
+```
+
+Correct alternative:
+
+```text
+[icon] Local Risk Map    [icon] Report Incident    [icon] Sync Status    [icon] AI Assistant
+```
+
+Default card style:
 
 ```text
 background: white
@@ -708,6 +783,20 @@ border: 1px solid Neutral 200
 radius: 10–12px
 shadow: none or XS
 padding: 16–20px
+```
+
+## Card borders
+
+Do NOT use thick, colored `border-left` (or top/right/bottom) accents to indicate status or severity on cards (e.g. `border-left: 4px solid red`).
+
+Use a consistent neutral border for the card itself, and use a dedicated status chip or badge *inside* the card to communicate state.
+
+Forbidden pattern:
+```text
+┌─────────────────────────┐
+│ ▌ Title                 │  ← Colored border accent — FORBIDDEN
+│ ▌ Content               │
+└─────────────────────────┘
 ```
 
 ---
@@ -1707,6 +1796,10 @@ The following should not appear unless there is a very specific reason:
 18. Excessive use of pills and chips.
 19. Unnecessary side panels on simple screens.
 20. Inconsistent wording for the same state.
+21. **Colored background containers around icons** — no tinted squares, rounded rectangles, or circles behind standalone icons. Icons must be inline.
+22. **Icon-and-title card grids** — no grid of 3–4 individual cards where each card only contains an icon, a title, and a one-line subtitle. Use compact inline buttons or navigation items instead.
+23. **Per-KPI card wrappers** — KPI metrics must be displayed in a single strip/row with dividers, not as individually boxed cards.
+24. **Decorative icon backgrounds that mimic brand colors** — using `backgroundColor` + `padding` + `borderRadius` on a `<div>` wrapping a Lucide icon to create a colored container is forbidden.
 
 ---
 
@@ -2077,3 +2170,43 @@ The product should feel credible enough for an emergency operations center and s
 **Consistency is more important than novelty.**
 
 When in doubt, reduce decoration, increase hierarchy, clarify the action, and reuse an existing component pattern.
+
+---
+
+# 61. AI-Slop Detection Checklist
+
+Before shipping any UI, verify it does NOT exhibit these common AI-generated visual patterns:
+
+## Icon treatment
+
+- [ ] No icon is wrapped in a colored background container (square, circle, or rounded rectangle)
+- [ ] Icons are inline with their labels, not floated inside decorative boxes
+- [ ] No gradient fills, glows, or shadows applied specifically to icons
+
+## Card overuse
+
+- [ ] KPIs are displayed as a single strip with dividers, NOT as individual cards
+- [ ] No grid of 3–4 cards where each card is just `[icon + title + subtitle]`
+- [ ] Quick actions are compact buttons or links, not large clickable card tiles
+- [ ] Information that belongs in a list is not split across multiple card containers
+
+## Layout bloat
+
+- [ ] No excessive whitespace caused by oversized padding inside cards
+- [ ] The page does not have more card-shaped containers than actual data points
+- [ ] Sidebar navigation items are NOT duplicated as card-grid shortcuts in the main content area
+
+## Visual decoration
+
+- [ ] No decorative colored shapes that serve no functional purpose
+- [ ] No gradients used purely for aesthetics (gradients are only for data visualization like heatmaps)
+- [ ] No rounded-pill shapes where a simple text label would suffice
+- [ ] Status indicators use text + color, not color-filled containers alone
+
+## Typography and spacing
+
+- [ ] Heading sizes follow the established type scale, not arbitrary values
+- [ ] Labels use consistent casing (choose one: UPPERCASE for micro-labels OR sentence case)
+- [ ] Spacing values are from the 4px grid system, not ad-hoc pixel values
+
+If any checkbox fails, the component must be redesigned before merging.

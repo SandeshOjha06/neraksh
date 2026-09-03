@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
-import { ShieldAlert, AlertTriangle, Layers, MapPin, Bell, Clock } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, Layers, MapPin, Bell, Clock, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import GisRasterHeatmapLayer from '../components/GisRasterHeatmapLayer';
 
 // Key strategic monitoring locations across North Eastern Region (NER) India
@@ -91,16 +91,15 @@ export default function AdminHeatmapView() {
     avgScore: 0
   });
   const [alerts, setAlerts] = useState([]);
+  const [incidents, setIncidents] = useState([]);
+  const [sideTab, setSideTab] = useState('alerts'); // 'alerts' or 'reports'
 
+  // Fetch static regional GIS susceptibility heatmap grid ONCE on mount to prevent map reloading/flicker
   useEffect(() => {
-    async function fetchData() {
+    async function fetchHeatmapData() {
       try {
         setLoading(true);
-        const [heatmapRes, alertsRes] = await Promise.all([
-          fetch('http://localhost:8000/api/heatmap/regional?step=1'),
-          fetch('http://localhost:8000/api/alerts')
-        ]);
-        
+        const heatmapRes = await fetch('http://localhost:8000/api/heatmap/regional?step=1');
         if (heatmapRes.ok) {
           const json = await heatmapRes.json();
           if (json.data && json.data.length > 0) {
@@ -119,20 +118,47 @@ export default function AdminHeatmapView() {
             });
           }
         }
+      } catch (err) {
+        console.error('Failed to fetch regional heatmap data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchHeatmapData();
+  }, []);
+
+  // Poll live dynamic model alerts & user citizen reports every 5s silently
+  useEffect(() => {
+    async function fetchDynamicData() {
+      try {
+        const [alertsRes, sitRes] = await Promise.all([
+          fetch('http://localhost:8000/api/alerts'),
+          fetch('http://localhost:8000/api/field/situational')
+        ]);
 
         if (alertsRes.ok) {
           const alertsJson = await alertsRes.json();
           setAlerts(alertsJson);
         }
+
+        if (sitRes.ok) {
+          const sitJson = await sitRes.json();
+          if (sitJson.incidents) {
+            setIncidents(sitJson.incidents);
+          }
+        }
       } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
-      } finally {
-        setLoading(false);
+        console.error('Failed to fetch dynamic alerts/reports:', err);
       }
     }
 
-    fetchData();
+    fetchDynamicData();
+    const intervalId = setInterval(fetchDynamicData, 5000);
+    return () => clearInterval(intervalId);
   }, []);
+
+  const unverifiedCount = incidents.filter(i => i.status === 'Unverified').length;
+  const verifiedCount = incidents.filter(i => i.status === 'Verified').length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', position: 'relative' }}>
@@ -146,10 +172,8 @@ export default function AdminHeatmapView() {
         gap: '16px',
         zIndex: 500
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
-          <div style={{ backgroundColor: 'var(--risk-critical-bg)', padding: '10px', borderRadius: '8px' }}>
-            <ShieldAlert size={20} color="var(--risk-critical)" />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+          <ShieldAlert size={18} color="var(--risk-critical)" />
           <div>
             <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>{t('ui.kpi_critical_cells')}</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
@@ -158,10 +182,8 @@ export default function AdminHeatmapView() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
-          <div style={{ backgroundColor: 'var(--risk-high-bg)', padding: '10px', borderRadius: '8px' }}>
-            <AlertTriangle size={20} color="var(--risk-high)" />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+          <AlertTriangle size={18} color="var(--risk-high)" />
           <div>
             <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>{t('ui.kpi_high_cells')}</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
@@ -170,22 +192,18 @@ export default function AdminHeatmapView() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
-          <div style={{ backgroundColor: 'var(--primary-50)', padding: '10px', borderRadius: '8px' }}>
-            <MapPin size={20} color="var(--primary-600)" />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+          <FileText size={18} color="var(--primary-600)" />
           <div>
             <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>{t('ui.kpi_monitored_cells')}</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
-              {loading ? 'Loading...' : `${kpis.totalPoints.toLocaleString()} Grid Cells`}
+              {unverifiedCount} Pending
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ backgroundColor: 'var(--secondary-50)', padding: '10px', borderRadius: '8px' }}>
-            <Layers size={20} color="var(--secondary-700)" />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Layers size={18} color="var(--secondary-700)" />
           <div>
             <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>{t('ui.kpi_avg_susceptibility')}</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
@@ -258,74 +276,43 @@ export default function AdminHeatmapView() {
               </Popup>
             </CircleMarker>
           ))}
-        </MapContainer>
 
-        {/* Live Active Alerts Panel */}
-        <div style={{
-          position: 'absolute',
-          top: '24px',
-          right: '24px',
-          width: '320px',
-          maxHeight: '400px',
-          backgroundColor: '#ffffff',
-          border: '1px solid var(--neutral-300)',
-          borderRadius: '12px',
-          boxShadow: '0 8px 24px rgba(15, 39, 71, 0.15)',
-          zIndex: 1000,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            backgroundColor: 'var(--primary-900)',
-            color: '#ffffff',
-            padding: '12px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '14px' }}>
-              <Bell size={18} color="var(--risk-critical)" />
-              Active Field Alerts
-            </div>
-            <div style={{ backgroundColor: 'var(--risk-critical)', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
-              {alerts.length} NEW
-            </div>
-          </div>
-          
-          <div style={{ padding: '12px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {alerts.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--neutral-500)', fontSize: '13px' }}>
-                No active critical alerts
-              </div>
-            ) : (
-              alerts.map(alert => (
-                <div key={alert.id} style={{
-                  backgroundColor: 'var(--risk-critical-bg)',
-                  border: '1px solid var(--risk-critical)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--risk-critical)', textTransform: 'uppercase' }}>
-                      {alert.severity} RISK
+          {/* Live Citizen Reported Incidents Layer */}
+          {incidents.map((inc) => (
+            <CircleMarker
+              key={`admin-inc-${inc.id}`}
+              center={[inc.lat || 27.33, inc.lon || 88.61]}
+              radius={inc.status === 'Unverified' ? 14 : 10}
+              pathOptions={{
+                color: '#ffffff',
+                fillColor: inc.status === 'Unverified' ? '#C92A2A' : '#159447',
+                fillOpacity: 0.9,
+                weight: 3,
+                dashArray: inc.status === 'Unverified' ? '4, 4' : undefined
+              }}
+            >
+              <Popup>
+                <div style={{ width: '240px', padding: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: inc.status === 'Unverified' ? 'var(--risk-critical)' : 'var(--risk-low)', textTransform: 'uppercase' }}>
+                      CITIZEN REPORT • {inc.status}
                     </span>
-                    <span style={{ fontSize: '10px', color: 'var(--neutral-600)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={12} />
-                      {new Date(alert.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    <span className={`risk-chip risk-${(inc.risk_level || 'high').toLowerCase()}`}>
+                      {inc.risk_level || 'High'}
                     </span>
                   </div>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--neutral-900)', marginBottom: '4px', lineHeight: '1.4' }}>
-                    {alert.message}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--neutral-600)' }}>
-                    Loc: {alert.latitude.toFixed(4)}°N, {alert.longitude.toFixed(4)}°E
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 6px 0' }}>{inc.category}</h4>
+                  <p style={{ fontSize: '12px', color: 'var(--neutral-700)', margin: '0 0 8px 0', lineHeight: '1.4' }}>{inc.description}</p>
+                  <div style={{ fontSize: '11px', color: 'var(--neutral-500)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <MapPin size={12} /> Coordinates: {inc.lat?.toFixed(4)}°N, {inc.lon?.toFixed(4)}°E
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
+              </Popup>
+            </CircleMarker>
+          ))}
+        </MapContainer>
+
+
 
         {/* Scientific GIS Map Legend Matching Reference Standards */}
         <div style={{
@@ -334,9 +321,8 @@ export default function AdminHeatmapView() {
           right: '24px',
           backgroundColor: '#ffffff',
           border: '1px solid var(--neutral-300)',
-          borderRadius: '8px',
+          borderRadius: '0px',
           padding: '12px 16px',
-          boxShadow: '0 4px 16px rgba(15, 39, 71, 0.12)',
           zIndex: 1000,
           width: '230px'
         }}>
@@ -374,3 +360,4 @@ export default function AdminHeatmapView() {
     </div>
   );
 }
+

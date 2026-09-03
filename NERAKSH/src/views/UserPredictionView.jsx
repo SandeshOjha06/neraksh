@@ -59,7 +59,7 @@ export default function UserPredictionView() {
 
   useEffect(() => {
     fetchData();
-    const intervalId = setInterval(fetchData, 15000);
+    const intervalId = setInterval(fetchData, 5000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -248,7 +248,7 @@ export default function UserPredictionView() {
             backgroundColor: 'var(--risk-critical)',
             color: '#fff',
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: '0px',
             padding: '10px 16px',
             fontWeight: 700,
             display: 'flex',
@@ -272,7 +272,6 @@ export default function UserPredictionView() {
           display: 'flex',
           flexDirection: 'column',
           zIndex: 1000,
-          boxShadow: '4px 0 16px rgba(0,0,0,0.05)'
         }}>
           {/* Tabs */}
           <div style={{ display: 'flex', borderBottom: '1px solid var(--neutral-200)' }}>
@@ -303,7 +302,7 @@ export default function UserPredictionView() {
                   alerts.map(a => (
                     <div key={a.id} style={{
                       border: '1px solid var(--risk-critical)',
-                      borderRadius: '8px',
+                      borderRadius: '0px',
                       padding: '16px',
                       backgroundColor: 'var(--risk-critical-bg)'
                     }}>
@@ -463,9 +462,8 @@ export default function UserPredictionView() {
             transform: 'translateX(-50%)',
             backgroundColor: '#ffffff',
             border: '1px solid var(--neutral-300)',
-            borderRadius: '24px',
+            borderRadius: '0px',
             padding: '8px 20px',
-            boxShadow: '0 4px 12px rgba(15, 39, 71, 0.12)',
             zIndex: 1000,
             display: 'flex',
             alignItems: 'center',
@@ -487,7 +485,6 @@ export default function UserPredictionView() {
             borderLeft: '1px solid var(--neutral-200)',
             display: 'flex',
             flexDirection: 'column',
-            boxShadow: '-4px 0 16px rgba(15, 39, 71, 0.08)',
             zIndex: 1000,
             overflowY: 'auto'
           }}>
@@ -520,7 +517,7 @@ export default function UserPredictionView() {
                   <div style={{
                     backgroundColor: sev.bg,
                     border: `1px solid ${sev.border}`,
-                    borderRadius: '12px',
+                    borderRadius: '0px',
                     padding: '20px',
                     textAlign: 'center'
                   }}>
@@ -605,7 +602,7 @@ export default function UserPredictionView() {
                     <FileText size={16} color="var(--secondary-600)" />
                     Model Feature Importance Drivers
                   </h4>
-                  <div style={{ backgroundColor: 'var(--neutral-50)', borderRadius: '8px', border: '1px solid var(--neutral-200)', padding: '12px', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ backgroundColor: 'var(--neutral-50)', borderRadius: '0px', border: '1px solid var(--neutral-200)', padding: '12px', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div>
                       <div style={{ fontWeight: 600, color: 'var(--neutral-700)', marginBottom: '4px' }}>Static Terrain Model (v3) Top Weights:</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
@@ -637,7 +634,7 @@ export default function UserPredictionView() {
                     <Mountain size={16} color="var(--primary-600)" />
                     Extracted Terrain Features
                   </h4>
-                  <div style={{ backgroundColor: 'var(--neutral-50)', borderRadius: '8px', border: '1px solid var(--neutral-200)', padding: '12px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ backgroundColor: 'var(--neutral-50)', borderRadius: '0px', border: '1px solid var(--neutral-200)', padding: '12px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: 'var(--neutral-600)' }}>Elevation:</span>
                       <strong>{predictionResult.features.terrain.elevation.toFixed(1)} m</strong>
@@ -664,7 +661,7 @@ export default function UserPredictionView() {
                     <CloudRain size={16} color="var(--secondary-600)" />
                     Dynamic Environmental Triggers
                   </h4>
-                  <div style={{ backgroundColor: 'var(--neutral-50)', borderRadius: '8px', border: '1px solid var(--neutral-200)', padding: '12px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ backgroundColor: 'var(--neutral-50)', borderRadius: '0px', border: '1px solid var(--neutral-200)', padding: '12px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: 'var(--neutral-600)' }}>Rainfall (1-Day):</span>
                       <strong>{predictionResult.features.trigger.rain_1d.toFixed(1)} mm</strong>
@@ -709,12 +706,11 @@ export default function UserPredictionView() {
         }}>
           <div style={{
             backgroundColor: '#fff',
-            borderRadius: '12px',
+            borderRadius: '0px',
             width: '450px',
             maxWidth: '90%',
             display: 'flex',
             flexDirection: 'column',
-            boxShadow: '0 16px 32px rgba(0,0,0,0.2)'
           }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--neutral-200)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '18px' }}>{t('ui.field_verification_report')}</h2>
@@ -733,7 +729,7 @@ export default function UserPredictionView() {
                 <select
                   value={verifySeverity}
                   onChange={e => setVerifySeverity(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--neutral-300)' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)' }}
                 >
                   <option value="Low">{t('ui.risk_monitor')}</option>
                   <option value="Moderate">{t('ui.risk_needs_clearing')}</option>
@@ -749,7 +745,7 @@ export default function UserPredictionView() {
                   placeholder="Describe ground conditions..."
                   value={verifyNotes}
                   onChange={e => setVerifyNotes(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--neutral-300)', fontFamily: 'inherit' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontFamily: 'inherit' }}
                 />
               </div>
 
@@ -758,7 +754,7 @@ export default function UserPredictionView() {
                 backgroundColor: 'var(--neutral-50)',
                 padding: '16px',
                 textAlign: 'center',
-                borderRadius: '8px',
+                borderRadius: '0px',
                 cursor: 'pointer'
               }}>
                 <Camera size={24} color="var(--neutral-500)" style={{ margin: '0 auto 8px auto' }} />
@@ -783,7 +779,7 @@ export default function UserPredictionView() {
           backgroundColor: 'var(--risk-critical-bg)',
           border: '1px solid var(--risk-critical)',
           color: 'var(--risk-critical)',
-          borderRadius: '8px',
+          borderRadius: '0px',
           padding: '12px 16px',
           zIndex: 2000,
           display: 'flex',

@@ -139,38 +139,54 @@ export default function GisRasterHeatmapLayer({
   points = [],
   cellSizeDeg = 0.05,
   showLandslidePoints = true,
-  opacity = 0.55,
+  opacity = 0.85,
 }) {
   const map = useMap();
   const layerRef = useRef(null);
 
   useEffect(() => {
-    if (!map || !points || points.length === 0) return;
+    if (!map) return;
+
+    if (!points || points.length === 0) {
+      if (layerRef.current) {
+        map.removeLayer(layerRef.current);
+        layerRef.current = null;
+      }
+      return;
+    }
 
     const spatialIndex = buildSpatialIndex(points, cellSizeDeg);
 
     if (layerRef.current) {
-      map.removeLayer(layerRef.current);
+      layerRef.current.options.cellSizeDeg = cellSizeDeg;
+      layerRef.current.options.spatialIndex = spatialIndex;
+      layerRef.current.options.showLandslidePoints = showLandslidePoints;
+      if (typeof layerRef.current.setOpacity === 'function') {
+        layerRef.current.setOpacity(opacity);
+      }
+      layerRef.current.redraw();
+    } else {
+      const gridLayer = new GisGridLayer({
+        cellSizeDeg,
+        spatialIndex,
+        showLandslidePoints,
+        opacity,
+        pane: 'overlayPane',
+      });
+
+      gridLayer.addTo(map);
+      layerRef.current = gridLayer;
     }
+  }, [map, points, cellSizeDeg, showLandslidePoints, opacity]);
 
-    const gridLayer = new GisGridLayer({
-      cellSizeDeg,
-      spatialIndex,
-      showLandslidePoints,
-      opacity,
-      pane: 'overlayPane',
-    });
-
-    gridLayer.addTo(map);
-    layerRef.current = gridLayer;
-
+  useEffect(() => {
     return () => {
       if (layerRef.current && map) {
         map.removeLayer(layerRef.current);
         layerRef.current = null;
       }
     };
-  }, [map, points, cellSizeDeg, showLandslidePoints, opacity]);
+  }, [map]);
 
   return null;
 }

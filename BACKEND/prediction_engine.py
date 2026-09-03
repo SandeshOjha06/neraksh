@@ -193,27 +193,129 @@ def predict_landslide_risk(lat: float, lon: float):
         severity = "Critical"
 
     print(f"[1. TERRAIN FEATURES (Model v3)]")
-    print(f"  • Elevation:          {susc_feats['elevation']:.2f} meters")
-    print(f"  • Slope Angle:        {susc_feats['slope_deg']:.2f}°")
-    print(f"  • Aspect (Sin/Cos):   ({susc_feats['aspect_sin']:.3f}, {susc_feats['aspect_cos']:.3f})")
-    print(f"  • Curvature:          {susc_feats['curvature']:.5f}")
-    print(f"  • Relief Amplitude:   {susc_feats['relief_amplitude']:.2f} m")
-    print(f"  • Surface Roughness:  {susc_feats['roughness']:.2f}")
+    print(f"  - Elevation:          {susc_feats['elevation']:.2f} meters")
+    print(f"  - Slope Angle:        {susc_feats['slope_deg']:.2f} deg")
+    print(f"  - Aspect (Sin/Cos):   ({susc_feats['aspect_sin']:.3f}, {susc_feats['aspect_cos']:.3f})")
+    print(f"  - Curvature:          {susc_feats['curvature']:.5f}")
+    print(f"  - Relief Amplitude:   {susc_feats['relief_amplitude']:.2f} m")
+    print(f"  - Surface Roughness:  {susc_feats['roughness']:.2f}")
 
     print(f"\n[2. DYNAMIC TRIGGER FEATURES (Model Trigger)]")
-    print(f"  • Rain (1-Day):       {trig_feats['rain_1d']:.2f} mm")
-    print(f"  • Rain (3-Day):       {trig_feats['rain_3d']:.2f} mm")
-    print(f"  • Rain (7-Day):       {trig_feats['rain_7d']:.2f} mm")
-    print(f"  • Rain (15-Day):      {trig_feats['rain_15d']:.2f} mm")
-    print(f"  • Rain (30-Day):      {trig_feats['rain_30d']:.2f} mm")
-    print(f"  • Vegetation (NDVI):  {trig_feats['ndvi']:.4f}")
+    print(f"  - Rain (1-Day):       {trig_feats['rain_1d']:.2f} mm")
+    print(f"  - Rain (3-Day):       {trig_feats['rain_3d']:.2f} mm")
+    print(f"  - Rain (7-Day):       {trig_feats['rain_7d']:.2f} mm")
+    print(f"  - Rain (15-Day):      {trig_feats['rain_15d']:.2f} mm")
+    print(f"  - Rain (30-Day):      {trig_feats['rain_30d']:.2f} mm")
+    print(f"  - Vegetation (NDVI):  {trig_feats['ndvi']:.4f}")
 
     print(f"\n[3. MODEL OUTPUT PROBABILITIES]")
-    print(f"  ★ Model v3 Susceptibility Score: {susc_prob:.4f} ({(susc_prob * 100):.2f}%)")
-    print(f"  ★ Model Trigger Score:          {trig_prob:.4f} ({(trig_prob * 100):.2f}%)")
-    print(f"  ★ Combined Risk Score (S * T):   {combined_score:.4f} ({(combined_score * 100):.2f}%)")
-    print(f"  ★ Final Severity Category:      [{severity.upper()}]")
+    print(f"  * Model v3 Susceptibility Score: {susc_prob:.4f} ({(susc_prob * 100):.2f}%)")
+    print(f"  * Model Trigger Score:          {trig_prob:.4f} ({(trig_prob * 100):.2f}%)")
+    print(f"  * Combined Risk Score (S * T):   {combined_score:.4f} ({(combined_score * 100):.2f}%)")
+    print(f"  * Final Severity Category:      [{severity.upper()}]")
     print("=" * 60 + "\n")
+
+    # Compute feature importances for susceptibility model_v3 and trigger model
+    susc_importance = {}
+    if model_v3 and hasattr(model_v3, "feature_importances_"):
+        raw_imp = model_v3.feature_importances_
+        susc_importance = {col: round(float(imp), 4) for col, imp in zip(susc_cols, raw_imp)}
+
+    trig_importance = {}
+    if model_trigger and hasattr(model_trigger, "feature_importances_"):
+        raw_imp = model_trigger.feature_importances_
+        trig_importance = {col: round(float(imp), 4) for col, imp in zip(trig_cols, raw_imp)}
+
+    # Prepare feature summary for prompt & response
+    feature_summary = {
+        "elevation_m": round(float(susc_feats["elevation"]), 1),
+        "slope_deg": round(float(susc_feats["slope_deg"]), 1),
+        "relief_amplitude_m": round(float(susc_feats["relief_amplitude"]), 1),
+        "roughness": round(float(susc_feats["roughness"]), 2),
+        "rain_1d_mm": round(float(trig_feats["rain_1d"]), 1),
+        "rain_3d_mm": round(float(trig_feats["rain_3d"]), 1),
+        "rain_7d_mm": round(float(trig_feats["rain_7d"]), 1),
+        "rain_30d_mm": round(float(trig_feats["rain_30d"]), 1),
+        "ndvi": round(float(trig_feats["ndvi"]), 2),
+    }
+
+    # OpenAI LLM Reasoning Generation (Backend execution using OPENAI_API_KEY)
+    llm_reasoning = None
+    try:
+        from openai import OpenAI
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        api_key = os.getenv("OPENAI_API_KEY")
+        if api_key:
+            client = OpenAI(api_key=api_key)
+            prompt = f"""You are an expert geotechnical hazards scientist analyzing landslide risk for North East India.
+Given the live geospatial measurement data and machine learning model predictions below, provide a structured explanation and prescriptive recommendations for field safety officers and citizens.
+
+Input Data:
+- Location Coordinates: Latitude {lat:.4f}°N, Longitude {lon:.4f}°E
+- Combined Landslide Risk Score: {(combined_score * 100):.1f}%
+- Assessed Severity Level: {severity.upper()}
+- Static Susceptibility Score: {(susc_prob * 100):.1f}%
+- Dynamic Trigger Risk Score: {(trig_prob * 100):.1f}%
+
+Extracted Geospatial Features:
+- Elevation: {feature_summary['elevation_m']} m
+- Slope Angle: {feature_summary['slope_deg']}°
+- Relief Amplitude: {feature_summary['relief_amplitude_m']} m
+- Surface Roughness: {feature_summary['roughness']}
+- 1-Day Rainfall: {feature_summary['rain_1d_mm']} mm
+- 7-Day Antecedent Rainfall: {feature_summary['rain_7d_mm']} mm
+- 30-Day Antecedent Rainfall: {feature_summary['rain_30d_mm']} mm
+- MODIS NDVI (Vegetation Index): {feature_summary['ndvi']}
+
+XGBoost Model Feature Importances:
+- Terrain Susceptibility Model Importances: {susc_importance}
+- Dynamic Trigger Model Importances: {trig_importance}
+
+Instructions:
+1. Explain what specific terrain characteristics and dynamic triggers caused the model prediction to reach this severity level.
+2. Outline the primary contributing drivers (e.g. steep slope, heavy 7-day antecedent rainfall, low vegetation root cohesion).
+3. Provide actionable prescriptive safety precautions and emergency protocols suitable for local residents and emergency response officers.
+
+Keep the response concise, authoritative, professional, and directly actionable (around 150-250 words). Use clean Markdown with headers."""
+
+            completion = client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": "You are a professional geotechnical hazards AI assistant specializing in landslide risk assessment and early warning alerts."},
+                    {"role": "user", "content": prompt}
+                ],
+                model="gpt-4o-mini",
+                temperature=0.3,
+                max_tokens=450,
+            )
+            llm_reasoning = completion.choices[0].message.content
+    except Exception as llm_err:
+        print(f"[OpenAI LLM Warning/Error] Could not fetch LLM explanation: {llm_err}")
+        # Generate robust scientific fallback prescription & driver analysis
+        drivers = []
+        if susc_feats["slope_deg"] > 25.0:
+            drivers.append(f"steep terrain slope ({susc_feats['slope_deg']:.1f}°)")
+        if trig_feats["rain_7d"] > 50.0 or trig_feats["rain_1d"] > 20.0:
+            drivers.append(f"significant antecedent rainfall ({trig_feats['rain_7d']:.1f}mm 7-day cumulative)")
+        if susc_feats["relief_amplitude"] > 100.0:
+            drivers.append(f"high topographic relief amplitude ({susc_feats['relief_amplitude']:.1f}m)")
+        if trig_feats["ndvi"] < 0.4:
+            drivers.append("sparse vegetation coverage reducing soil root stabilization")
+        
+        driver_str = ", ".join(drivers) if drivers else "moderate slope and regional hydrological saturation"
+        
+        llm_reasoning = f"""### Landslide Hazard Analysis & Prescription ({severity} Risk)
+
+**Primary Risk Drivers:**
+The assessed **{severity} severity level** (Combined Risk: **{(combined_score * 100):.1f}%**) at coordinates ({lat:.4f}°N, {lon:.4f}°E) is driven by {driver_str}. 
+
+**Model Feature Breakdown:**
+- **Terrain Susceptibility ({(susc_prob * 100):.1f}%):** Slope angle ({susc_feats['slope_deg']:.1f}°), elevation ({susc_feats['elevation']:.1f}m), and surface roughness ({susc_feats['roughness']:.1f}) demonstrate high static vulnerability.
+- **Dynamic Trigger ({(trig_prob * 100):.1f}%):** Recent rainfall (1-day: {trig_feats['rain_1d']:.1f}mm, 7-day: {trig_feats['rain_7d']:.1f}mm) actively pore-saturates slope soil layers.
+
+**Prescriptive Safety Guidance:**
+{"1. Immediate evacuation notice for downslope habitations near steep cuts.\n2. Continuous monitoring for ground tension cracks and muddy runoffs.\n3. Restrict heavy vehicles on vulnerable slope roads." if severity in ["High", "Critical"] else "1. Monitor local rainfall alerts and avoid steep unreinforced cuts.\n2. Inspect drainage channels for blockage during heavy rain.\n3. Report fresh tension cracks to local disaster management team."}"""
 
     return {
         "latitude": lat,
@@ -222,10 +324,16 @@ def predict_landslide_risk(lat: float, lon: float):
         "trigger_score": round(float(trig_prob), 4),
         "raw_score": combined_score,
         "severity_level": severity,
+        "feature_importance": {
+            "susceptibility_model": susc_importance,
+            "trigger_model": trig_importance,
+        },
         "features": {
             "terrain": susc_feats,
             "trigger": trig_feats,
-        }
+            "summary": feature_summary,
+        },
+        "llm_reasoning": llm_reasoning
     }
 
 # ---------------------------------------------------------

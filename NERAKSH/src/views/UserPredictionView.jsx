@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { MapPin, AlertCircle, CheckCircle2, CloudRain, Mountain, Activity, X, Compass } from 'lucide-react';
+import { MapPin, AlertCircle, CheckCircle2, CloudRain, Mountain, Activity, X, Compass, Sparkles, FileText } from 'lucide-react';
 import GisRasterHeatmapLayer from '../components/GisRasterHeatmapLayer';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 // Custom pin icon for tap location
 const defaultIcon = L.icon({
@@ -205,14 +206,14 @@ export default function UserPredictionView() {
                         Fetching DEM & neighborhood grid...
                       </div>
                       <div style={{ fontSize: '10px', color: 'var(--neutral-500)' }}>
-                        Running XGBoost inference engine
+                        Running XGBoost & Cerebras AI Engine
                       </div>
                     </div>
                   )}
 
                   {predictionResult && (
                     <div style={{ fontSize: '12px', color: 'var(--secondary-700)', fontWeight: 600 }}>
-                      Prediction & Neighborhood Heatmap Ready!
+                      Prediction & AI Analysis Ready!
                     </div>
                   )}
                 </div>
@@ -249,7 +250,7 @@ export default function UserPredictionView() {
       {/* Result Panel (Appears when prediction is completed) */}
       {predictionResult && (
         <div style={{
-          width: '380px',
+          width: '440px',
           backgroundColor: '#ffffff',
           borderLeft: '1px solid var(--neutral-200)',
           display: 'flex',
@@ -322,6 +323,64 @@ export default function UserPredictionView() {
                 <div style={{ fontSize: '10px', color: 'var(--neutral-500)' }}>NASA Rain + MODIS NDVI</div>
               </div>
             </div>
+
+            {/* OpenAI / Cerebras AI Scientific Explanation & Prescription Card */}
+            {predictionResult.llm_reasoning && (
+              <div style={{
+                backgroundColor: 'var(--primary-50)',
+                border: '1px solid var(--primary-200)',
+                borderRadius: '10px',
+                padding: '16px',
+                fontSize: '12px',
+                lineHeight: '1.5'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontWeight: 700,
+                  color: 'var(--primary-900)',
+                  marginBottom: '10px',
+                  fontSize: '13px'
+                }}>
+                  <Sparkles size={16} color="var(--primary-600)" />
+                  AI Prescriptive Hazard Analysis (OpenAI gpt-4o-mini)
+                </div>
+                <MarkdownRenderer content={predictionResult.llm_reasoning} />
+              </div>
+            )}
+
+            {/* Model Feature Importance Breakdown */}
+            {predictionResult.feature_importance && (
+              <div>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--neutral-900)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <FileText size={16} color="var(--secondary-600)" />
+                  Model Feature Importance Drivers
+                </h4>
+                <div style={{ backgroundColor: 'var(--neutral-50)', borderRadius: '8px', border: '1px solid var(--neutral-200)', padding: '12px', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--neutral-700)', marginBottom: '4px' }}>Static Terrain Model (v3) Top Weights:</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {Object.entries(predictionResult.feature_importance.susceptibility_model || {}).map(([key, val]) => (
+                        <span key={key} style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-300)', borderRadius: '4px', padding: '2px 6px', color: 'var(--neutral-800)' }}>
+                          {key}: <strong>{(val * 100).toFixed(1)}%</strong>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ borderTop: '1px dashed var(--neutral-200)', paddingTop: '6px' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--neutral-700)', marginBottom: '4px' }}>Dynamic Trigger Model Top Weights:</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {Object.entries(predictionResult.feature_importance.trigger_model || {}).map(([key, val]) => (
+                        <span key={key} style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-300)', borderRadius: '4px', padding: '2px 6px', color: 'var(--neutral-800)' }}>
+                          {key}: <strong>{(val * 100).toFixed(1)}%</strong>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Feature Breakdown */}
             <div>

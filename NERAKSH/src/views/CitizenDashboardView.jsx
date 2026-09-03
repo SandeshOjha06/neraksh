@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
+import L from 'leaflet';
 import {
   Home,
   ShieldAlert,
@@ -65,11 +67,80 @@ export default function CitizenDashboardView({ currentUser }) {
     { id: 3, title: 'Offline Data Cached', desc: 'Offline GIS maps for Sikkim & North Bengal stored locally.', time: '3h ago', unread: false }
   ]);
 
-  const handleMediaUpload = (e) => {
+  React.useEffect(() => {
+    async function fetchAlerts() {
+      try {
+        const res = await fetch('http://localhost:8000/api/alerts');
+        if (res.ok) {
+          const data = await res.json();
+          const apiNotifications = data.map(a => ({
+            id: `api-${a.id}`,
+            title: `[NDMA] ${a.severity.toUpperCase()} LANDSLIDE RISK ALERT`,
+            desc: `${a.message} (Location: ${a.latitude.toFixed(4)}°N, ${a.longitude.toFixed(4)}°E)`,
+            time: new Date(a.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            unread: true,
+            isCritical: a.severity === 'Critical'
+          }));
+          
+          setNotifications(prev => {
+            // Filter out existing api alerts to avoid duplicates if re-rendered
+            const existing = prev.filter(p => !String(p.id).startsWith('api-'));
+            return [...apiNotifications, ...existing];
+          });
+        }
+      } catch (e) {
+        console.error('Failed to fetch alerts:', e);
+      }
+    }
+    fetchAlerts();
+    // Refresh alerts every 30 seconds
+    const intervalId = setInterval(fetchAlerts, 30000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const [aiAnalysisResults, setAiAnalysisResults] = useState([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const handleMediaUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      const fileNames = files.map(f => f.name);
-      setMediaFiles(prev => [...prev, ...fileNames]);
+      setIsAnalyzing(true);
+      const newResults = [];
+      
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+        
+        // Append Citizen's known GPS location to simulate EXIF Geotag extraction from the device
+        formData.append("lat", "27.33");
+        formData.append("lon", "88.61");
+        
+        try {
+          const res = await fetch('http://localhost:8000/api/analyze-media', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            newResults.push({
+              fileName: file.name,
+              imageUrl: URL.createObjectURL(file),
+              geotag: data.geotag_extracted,
+              analysis: data.analysis
+            });
+          } else {
+            newResults.push({ fileName: file.name, imageUrl: URL.createObjectURL(file), analysis: { risk_level: "Error", damage_estimate: "Failed to analyze." }});
+          }
+        } catch (err) {
+          console.error("Upload error:", err);
+          newResults.push({ fileName: file.name, imageUrl: URL.createObjectURL(file), analysis: { risk_level: "Error", damage_estimate: "Network error." }});
+        }
+      }
+      
+      setAiAnalysisResults(prev => [...prev, ...newResults]);
+      setMediaFiles(prev => [...prev, ...files.map(f => f.name)]);
+      setIsAnalyzing(false);
     }
   };
 
@@ -254,10 +325,37 @@ export default function CitizenDashboardView({ currentUser }) {
               alignItems: 'center',
               justifyContent: 'space-between'
             }}>
-              <div>
-                <span className="risk-chip risk-moderate" style={{ marginBottom: '8px' }}>
-                  ZONE ALERT: MODERATE LANDSLIDE RISK
-                </span>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {notifications.filter(n => String(n.id).startsWith('api-')).length > 0 ? (
+                  <div style={{ 
+                    backgroundColor: 'var(--risk-critical)', 
+                    color: '#ffffff', 
+                    padding: '12px 16px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #ff4d4d',
+                    marginBottom: '10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '14px' }}>
+                      <AlertTriangle size={18} />
+                      EMERGENCY ALERT ISSUED BY NDMA
+                    </div>
+                    {notifications.filter(n => String(n.id).startsWith('api-')).map(n => (
+                      <div key={n.id} style={{ fontSize: '13px', fontWeight: 500, lineHeight: '1.4' }}>
+                        <strong>{n.title}:</strong> {n.desc}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div>
+                    <span className="risk-chip risk-moderate" style={{ marginBottom: '8px' }}>
+                      ZONE STATUS: NO CRITICAL EMERGENCIES
+                    </span>
+                  </div>
+                )}
+                
                 <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '6px 0' }}>
                   Welcome, {currentUser?.full_name || 'Anita Roy'}
                 </h2>
@@ -366,12 +464,30 @@ export default function CitizenDashboardView({ currentUser }) {
                 </div>
               </div>
 
-              <div style={{ height: '360px', backgroundColor: '#e5e9ec', borderRadius: '8px', border: '1px solid var(--neutral-300)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                <div style={{ textStyle: 'center', textAlign: 'center' }}>
-                  <MapPin size={32} color="var(--risk-critical)" />
-                  <div style={{ fontWeight: 700, marginTop: '8px' }}>Your GPS Location: Gangtok (27.33°N, 88.61°E)</div>
-                  <div style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Susceptibility Score: 0.78 (High Susceptibility Slope)</div>
-                </div>
+              <div style={{ height: '360px', backgroundColor: '#e5e9ec', borderRadius: '8px', border: '1px solid var(--neutral-300)', position: 'relative', overflow: 'hidden' }}>
+                <MapContainer
+                  center={[27.33, 88.61]}
+                  zoom={12}
+                  style={{ width: '100%', height: '100%' }}
+                  zoomControl={true}
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  
+                  <CircleMarker
+                    center={[27.33, 88.61]}
+                    radius={30}
+                    pathOptions={{ color: 'var(--risk-critical)', fillColor: 'var(--risk-critical)', fillOpacity: 0.3, weight: 2 }}
+                  >
+                    <Popup>Your Location Zone (High Susceptibility)</Popup>
+                  </CircleMarker>
+
+                  <Marker position={[27.33, 88.61]}>
+                    <Popup>
+                      <strong>Gangtok (27.33°N, 88.61°E)</strong><br/>
+                      Susceptibility Score: 0.78
+                    </Popup>
+                  </Marker>
+                </MapContainer>
               </div>
             </div>
           </div>
@@ -482,18 +598,50 @@ export default function CitizenDashboardView({ currentUser }) {
             </div>
 
             <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '16px', border: '1px solid var(--neutral-200)' }}>
-              <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>Uploaded Media Queue ({mediaFiles.length})</h4>
-              {mediaFiles.length === 0 ? (
+              <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>AI Image Analysis Results</h4>
+              {isAnalyzing && (
+                <div style={{ fontSize: '12px', color: 'var(--primary-600)', marginBottom: '12px', fontWeight: 'bold' }}>
+                  Running deep learning model on uploaded media...
+                </div>
+              )}
+              {aiAnalysisResults.length === 0 && !isAnalyzing ? (
                 <div style={{ fontSize: '12px', color: 'var(--neutral-500)' }}>No pending uploads.</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {mediaFiles.map((m, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', backgroundColor: 'var(--neutral-50)', borderRadius: '4px', fontSize: '12px' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <FileImage size={14} color="var(--primary-600)" />
-                        {m}
-                      </span>
-                      <span style={{ color: 'var(--risk-low)', fontWeight: 600 }}>Ready</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {aiAnalysisResults.map((res, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '16px', padding: '16px', backgroundColor: 'var(--neutral-50)', borderRadius: '8px', border: '1px solid var(--neutral-200)' }}>
+                      {res.imageUrl && (
+                        <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--neutral-300)' }}>
+                          <img src={res.imageUrl} alt="Uploaded media" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 700 }}>
+                            <FileImage size={16} color="var(--primary-600)" />
+                            {res.fileName}
+                          </span>
+                          <span style={{ color: res.analysis.risk_level === 'High' ? 'var(--risk-critical)' : (res.analysis.risk_level === 'Error' ? 'var(--neutral-500)' : 'var(--risk-moderate)'), fontWeight: 800, fontSize: '14px', textTransform: 'uppercase' }}>
+                            {res.analysis.risk_level} RISK
+                          </span>
+                        </div>
+                        
+                        {res.geotag && (
+                          <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <MapPin size={12} />
+                            Geotag Extracted: {parseFloat(res.geotag.lat).toFixed(4)}°N, {parseFloat(res.geotag.lon).toFixed(4)}°E
+                          </div>
+                        )}
+
+                        <div style={{ fontSize: '14px', color: 'var(--neutral-800)', marginBottom: '4px' }}>
+                          <strong>Estimate:</strong> {res.analysis.damage_estimate}
+                        </div>
+                        {res.analysis.action_required && (
+                          <div style={{ fontSize: '13px', color: 'var(--primary-700)', fontWeight: 600 }}>
+                            Action: {res.analysis.action_required} (Confidence: {(res.analysis.confidence * 100).toFixed(0)}%)
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -593,8 +741,10 @@ export default function CitizenDashboardView({ currentUser }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {notifications.map(notif => (
                 <div key={notif.id} style={{
-                  backgroundColor: '#ffffff',
+                  backgroundColor: notif.isCritical ? 'var(--risk-critical-bg)' : '#ffffff',
                   borderLeft: notif.unread ? '4px solid var(--risk-critical)' : '1px solid var(--neutral-200)',
+                  border: notif.isCritical ? '1px solid var(--risk-critical)' : undefined,
+                  borderLeftWidth: notif.unread ? '4px' : '1px',
                   borderRadius: '8px',
                   padding: '14px 16px',
                   boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
@@ -603,7 +753,9 @@ export default function CitizenDashboardView({ currentUser }) {
                   alignItems: 'flex-start'
                 }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '14px' }}>{notif.title}</div>
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: notif.isCritical ? 'var(--risk-critical)' : 'inherit' }}>
+                      {notif.title}
+                    </div>
                     <div style={{ fontSize: '12px', color: 'var(--neutral-600)', marginTop: '2px' }}>{notif.desc}</div>
                   </div>
                   <span style={{ fontSize: '10px', color: 'var(--neutral-400)' }}>{notif.time}</span>

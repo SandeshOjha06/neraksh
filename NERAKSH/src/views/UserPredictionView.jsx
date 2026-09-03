@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
 import {
   MapPin, AlertCircle, CloudRain, Mountain,
   Activity, X, Compass, Bell, Camera,
-  PhoneCall, Sparkles, FileText
+  PhoneCall, Sparkles, FileText, ShieldAlert
 } from 'lucide-react';
 import GisRasterHeatmapLayer from '../components/GisRasterHeatmapLayer';
 import MarkdownRenderer from '../components/MarkdownRenderer';
+import { getLocalizedHazardReasoning } from '../utils/hazardAnalysis';
 
 // Custom pin icon for tap location
 const defaultIcon = L.icon({
@@ -36,6 +38,7 @@ function MapClickHandler({ onLocationSelect }) {
 }
 
 export default function UserPredictionView() {
+  const { t, getSeverityLabel } = useLanguage();
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [loading, setLoading] = useState(false);
   const [predictionResult, setPredictionResult] = useState(null);
@@ -255,7 +258,7 @@ export default function UserPredictionView() {
           }}
         >
           <PhoneCall size={16} />
-          EMERGENCY BACKUP
+          {t('ui.emergency_backup')}
         </button>
       </div>
 
@@ -276,13 +279,13 @@ export default function UserPredictionView() {
               onClick={() => setActiveTab('alerts')}
               style={{ flex: 1, padding: '16px 0', fontWeight: 700, backgroundColor: activeTab === 'alerts' ? '#fff' : '#f8f9fa', border: 'none', borderBottom: activeTab === 'alerts' ? '2px solid var(--primary-600)' : '2px solid transparent', cursor: 'pointer' }}
             >
-              Alert Notifications
+              {t('ui.alert_notifications')}
             </button>
             <button
               onClick={() => setActiveTab('incidents')}
               style={{ flex: 1, padding: '16px 0', fontWeight: 700, backgroundColor: activeTab === 'incidents' ? '#fff' : '#f8f9fa', border: 'none', borderBottom: activeTab === 'incidents' ? '2px solid var(--primary-600)' : '2px solid transparent', cursor: 'pointer' }}
             >
-              Live Map Data
+              {t('ui.live_map_data')}
             </button>
           </div>
 
@@ -291,10 +294,10 @@ export default function UserPredictionView() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Bell size={18} color="var(--risk-critical)" />
-                  Active Alerts
+                  {t('ui.active_alerts')}
                 </h3>
                 {alerts.length === 0 ? (
-                  <p style={{ color: 'var(--neutral-500)', fontSize: '13px' }}>No active alerts in your area.</p>
+                  <p style={{ color: 'var(--neutral-500)', fontSize: '13px' }}>{t('alert.no_active_alerts')}</p>
                 ) : (
                   alerts.map(a => (
                     <div key={a.id} style={{
@@ -305,12 +308,14 @@ export default function UserPredictionView() {
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                         <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--risk-critical)', textTransform: 'uppercase' }}>
-                          {a.severity} SEVERITY
+                          {getSeverityLabel(a.severity).toUpperCase()} {t('alert.severity_label').toUpperCase()}
                         </span>
                       </div>
-                      <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 8px 0', color: 'var(--risk-critical)' }}>{a.message}</h4>
+                      <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 8px 0', color: 'var(--risk-critical)' }}>
+                        [NDMA] {getSeverityLabel(a.severity).toUpperCase()} {t('notification.landslide_risk_alert')}
+                      </h4>
                       <div style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>
-                        Location: {a.latitude.toFixed(3)}°N, {a.longitude.toFixed(3)}°E
+                        {t('alert.location_label')}: {a.latitude.toFixed(3)}°N, {a.longitude.toFixed(3)}°E
                       </div>
                     </div>
                   ))
@@ -321,75 +326,14 @@ export default function UserPredictionView() {
             {activeTab === 'incidents' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <AlertCircle size={16} color="var(--risk-critical)" />
-                      Unverified Citizen Reports
-                    </h3>
-                    <span style={{ backgroundColor: 'var(--risk-critical-bg)', color: 'var(--risk-critical)', padding: '2px 8px', borderRadius: '0px', fontSize: '11px', fontWeight: 700 }}>
-                      {situationalData.incidents?.filter(i => i.status === 'Unverified').length || 0} PENDING
-                    </span>
-                  </div>
-                  
-                  {(!situationalData.incidents || situationalData.incidents.filter(i => i.status === 'Unverified').length === 0) ? (
-                    <p style={{ color: 'var(--neutral-500)', fontSize: '13px', fontStyle: 'italic' }}>No unverified citizen reports pending.</p>
-                  ) : (
-                    situationalData.incidents.filter(i => i.status === 'Unverified').map(inc => (
-                      <div key={inc.id} style={{
-                        fontSize: '13px',
-                        padding: '14px',
-                        border: '1px solid var(--neutral-200)',
-                        borderRadius: '0px',
-                        marginBottom: '10px',
-                        backgroundColor: '#ffffff'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <strong style={{ fontSize: '14px', color: 'var(--neutral-900)' }}>{inc.category}</strong>
-                          <span className={`risk-chip risk-${(inc.risk_level || 'high').toLowerCase()}`}>
-                            {inc.risk_level || 'High'}
-                          </span>
-                        </div>
-                        <p style={{ margin: '4px 0 8px 0', color: 'var(--neutral-700)', lineHeight: '1.4' }}>{inc.description}</p>
-                        <div style={{ fontSize: '11px', color: 'var(--neutral-500)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <MapPin size={12} />
-                          {inc.lat ? `${inc.lat.toFixed(4)}°N, ${inc.lon.toFixed(4)}°E` : 'Gangtok Zone'}
-                        </div>
-                        <button
-                          onClick={() => openVerifyModal(inc)}
-                          className="btn-primary"
-                          style={{ width: '100%', padding: '8px 12px', fontSize: '12px', justifyContent: 'center' }}
-                        >
-                          Conduct Ground Verification
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                <div style={{ borderTop: '1px solid var(--neutral-200)', paddingTop: '14px' }}>
-                  <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px', color: 'var(--neutral-800)' }}>
-                    Verified Ground Incidents
-                  </h3>
-                  {situationalData.incidents?.filter(i => i.status === 'Verified').length === 0 ? (
-                    <p style={{ color: 'var(--neutral-500)', fontSize: '12px' }}>No verified incidents logged.</p>
-                  ) : (
-                    situationalData.incidents?.filter(i => i.status === 'Verified').map(inc => (
-                      <div key={inc.id} style={{
-                        fontSize: '12px',
-                        padding: '10px 12px',
-                        border: '1px solid var(--neutral-200)',
-                        borderRadius: '4px',
-                        marginBottom: '8px',
-                        backgroundColor: 'var(--neutral-50)'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
-                          <span>{inc.category}</span>
-                          <span style={{ color: 'var(--risk-low)', textTransform: 'uppercase' }}>VERIFIED</span>
-                        </div>
-                        <p style={{ margin: '4px 0 0 0', color: 'var(--neutral-600)' }}>{inc.description}</p>
-                      </div>
-                    ))
-                  )}
+                  <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>{t('ui.nearby_incidents')}</h3>
+                  {situationalData.incidents?.filter(i => i.status === 'Unverified').map(inc => (
+                    <div key={inc.id} style={{ fontSize: '13px', padding: '12px', border: '1px solid #eee', borderRadius: '6px', marginBottom: '8px' }}>
+                      <strong>{inc.category}</strong>
+                      <p style={{ margin: '4px 0', color: '#666' }}>{inc.description}</p>
+                      <button onClick={() => openVerifyModal(inc)} style={{ marginTop: '4px', padding: '6px 12px', background: 'var(--primary-600)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('ui.verify_on_map')}</button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -529,7 +473,7 @@ export default function UserPredictionView() {
             color: 'var(--primary-900)'
           }}>
             <Compass size={16} color="var(--primary-600)" />
-            Tap any location on the map to analyze landslide risk
+            {t('ui.tap_map_instruction')}
           </div>
         </div>
 
@@ -555,7 +499,7 @@ export default function UserPredictionView() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Activity size={18} color="var(--secondary-500)" />
-                <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>On-Demand Risk Analysis</h3>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{t('ui.on_demand_analysis')}</h3>
               </div>
               <button
                 onClick={handleCancel}
@@ -578,13 +522,13 @@ export default function UserPredictionView() {
                     textAlign: 'center'
                   }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: sev.text, marginBottom: '4px' }}>
-                      Assessed Severity Level
+                      {t('ui.assessed_severity')}
                     </div>
                     <div style={{ fontSize: '28px', fontWeight: 800, color: sev.text, marginBottom: '8px' }}>
-                      {predictionResult.severity_level.toUpperCase()}
+                      {getSeverityLabel(predictionResult.severity_level)}
                     </div>
                     <div style={{ fontSize: '13px', color: 'var(--neutral-700)' }}>
-                      Combined Risk Score: <strong>{(predictionResult.raw_score * 100).toFixed(1)}%</strong>
+                      {t('ui.combined_risk_score_label')}: <strong>{(predictionResult.raw_score * 100).toFixed(1)}%</strong>
                     </div>
                   </div>
                 );
@@ -592,15 +536,15 @@ export default function UserPredictionView() {
 
               {/* Model Sub-scores */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div style={{ backgroundColor: 'var(--neutral-50)', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '12px' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Terrain Susceptibility</div>
+                <div style={{ backgroundColor: 'var(--neutral-50)', border: '1px solid var(--neutral-200)', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>{t('ui.terrain_susceptibility')}</div>
                   <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--primary-800)', marginTop: '2px' }}>
                     {(predictionResult.susceptibility_score * 100).toFixed(1)}%
                   </div>
                   <div style={{ fontSize: '10px', color: 'var(--neutral-500)' }}>Model v3 (9 static features)</div>
                 </div>
-                <div style={{ backgroundColor: 'var(--neutral-50)', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '12px' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Dynamic Trigger</div>
+                <div style={{ backgroundColor: 'var(--neutral-50)', border: '1px solid var(--neutral-200)', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>{t('ui.dynamic_trigger')}</div>
                   <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--secondary-800)', marginTop: '2px' }}>
                     {(predictionResult.trigger_score * 100).toFixed(1)}%
                   </div>
@@ -608,29 +552,46 @@ export default function UserPredictionView() {
                 </div>
               </div>
 
-              {/* OpenAI AI Scientific Explanation & Prescription Card (Markdown Rendered) */}
+              {/* Prescriptive Hazard Assessment & Advisory Card */}
               {predictionResult.llm_reasoning && (
                 <div style={{
-                  backgroundColor: 'var(--primary-50)',
-                  border: '1px solid var(--primary-200)',
-                  borderRadius: '0px',
-                  padding: '16px',
-                  fontSize: '12px',
-                  lineHeight: '1.5'
+                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--neutral-200)',
+                  borderRadius: '10px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  overflow: 'hidden'
                 }}>
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    fontWeight: 700,
-                    color: 'var(--primary-900)',
-                    marginBottom: '10px',
-                    fontSize: '13px'
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    backgroundColor: '#0f2747',
+                    color: '#ffffff'
                   }}>
-                    <Sparkles size={16} color="var(--primary-600)" />
-                    AI Prescriptive Hazard Analysis (OpenAI gpt-4o-mini)
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontWeight: 700,
+                      fontSize: '13px'
+                    }}>
+                      <ShieldAlert size={16} color="var(--secondary-400)" />
+                      {t('hazard.card_title')}
+                    </div>
+                    <span className={`risk-chip risk-${(predictionResult.severity_level || 'low').toLowerCase()}`} style={{ fontSize: '11px', padding: '2px 8px' }}>
+                      {getSeverityLabel(predictionResult.severity_level)}
+                    </span>
                   </div>
-                  <MarkdownRenderer content={predictionResult.llm_reasoning} />
+                  <div style={{
+                    padding: '16px',
+                    fontSize: '12px',
+                    lineHeight: '1.6',
+                    color: 'var(--neutral-800)',
+                    backgroundColor: '#fafbfc'
+                  }}>
+                    <MarkdownRenderer content={getLocalizedHazardReasoning(predictionResult, t, getSeverityLabel)} />
+                  </div>
                 </div>
               )}
 
@@ -724,7 +685,7 @@ export default function UserPredictionView() {
               {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                 <button onClick={handleCancel} className="btn-secondary" style={{ flex: 1, justifyContent: 'center' }}>
-                  Clear Selection
+                  {t('ui.clear_selection')}
                 </button>
               </div>
             </div>
@@ -752,33 +713,33 @@ export default function UserPredictionView() {
             flexDirection: 'column',
           }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--neutral-200)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ margin: 0, fontSize: '18px' }}>Field Verification Report</h2>
+              <h2 style={{ margin: 0, fontSize: '18px' }}>{t('ui.field_verification_report')}</h2>
               <button onClick={() => setShowVerifyModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
 
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', fontWeight: 'bold' }}>INCIDENT DETAILS</div>
+                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', fontWeight: 'bold' }}>{t('ui.incident_details')}</div>
                 <div style={{ fontSize: '15px', fontWeight: 'bold' }}>{selectedIncident.category}</div>
                 <div style={{ fontSize: '13px', color: '#444' }}>{selectedIncident.description}</div>
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>Actual Severity Observed</label>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>{t('ui.actual_severity_observed')}</label>
                 <select
                   value={verifySeverity}
                   onChange={e => setVerifySeverity(e.target.value)}
                   style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)' }}
                 >
-                  <option value="Low">Low Risk - Monitor</option>
-                  <option value="Moderate">Moderate Risk - Needs Clearing</option>
-                  <option value="High">High Risk - Escalation Required</option>
-                  <option value="Critical">Critical - Immediate Evacuation</option>
+                  <option value="Low">{t('ui.risk_monitor')}</option>
+                  <option value="Moderate">{t('ui.risk_needs_clearing')}</option>
+                  <option value="High">{t('ui.risk_escalation')}</option>
+                  <option value="Critical">{t('ui.risk_evacuation')}</option>
                 </select>
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>Field Notes / Evidence</label>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>{t('ui.field_notes')}</label>
                 <textarea
                   rows={3}
                   placeholder="Describe ground conditions..."
@@ -802,8 +763,8 @@ export default function UserPredictionView() {
             </div>
 
             <div style={{ padding: '16px 20px', borderTop: '1px solid var(--neutral-200)', backgroundColor: '#f8f9fa', display: 'flex', gap: '12px', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
-              <button onClick={() => setShowVerifyModal(false)} style={{ flex: 1, padding: '12px', border: '1px solid var(--neutral-300)', borderRadius: '4px', background: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>Cancel</button>
-              <button onClick={submitVerification} className="btn-primary" style={{ flex: 2, padding: '12px', fontSize: '14px' }}>Submit Verification</button>
+              <button onClick={() => setShowVerifyModal(false)} style={{ flex: 1, padding: '12px', border: '1px solid var(--neutral-300)', borderRadius: '6px', background: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>{t('ui.cancel')}</button>
+              <button onClick={submitVerification} className="btn-primary" style={{ flex: 2, padding: '12px', fontSize: '14px' }}>{t('ui.submit_verification')}</button>
             </div>
           </div>
         </div>

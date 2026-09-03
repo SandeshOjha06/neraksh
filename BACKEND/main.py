@@ -11,10 +11,18 @@ from prediction_engine import (
     get_neighborhood_susceptibility_heatmap
 )
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    seed.init_and_seed_db()
+    yield
+
 app = FastAPI(
     title="NE India Landslide Early-Warning System API",
     description="Backend services for spatial susceptibility and trigger risk live inference.",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # Enable CORS for frontend integration
@@ -26,17 +34,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-def on_startup():
-    seed.init_and_seed_db()
-
 class PredictRequest(BaseModel):
-    lat: float = Field(..., example=27.33, description="Latitude coordinate in NER India")
-    lon: float = Field(..., example=88.61, description="Longitude coordinate in NER India")
+    lat: float = Field(..., json_schema_extra={"example": 27.33}, description="Latitude coordinate in NER India")
+    lon: float = Field(..., json_schema_extra={"example": 88.61}, description="Longitude coordinate in NER India")
 
 class NeighborhoodHeatmapRequest(BaseModel):
-    lat: float = Field(..., example=27.33, description="Target latitude")
-    lon: float = Field(..., example=88.61, description="Target longitude")
+    lat: float = Field(..., json_schema_extra={"example": 27.33}, description="Target latitude")
+    lon: float = Field(..., json_schema_extra={"example": 88.61}, description="Target longitude")
     radius_km: float = Field(20.0, description="Spatial search radius in kilometers")
 
 @app.get("/api/health")

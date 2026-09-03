@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { ShieldAlert, AlertTriangle, Layers, MapPin, Bell, Clock, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import GisRasterHeatmapLayer from '../components/GisRasterHeatmapLayer';
@@ -80,6 +81,7 @@ const monitoringStations = [
 ];
 
 export default function AdminHeatmapView() {
+  const { t, getSeverityLabel } = useLanguage();
   const [heatmapPoints, setHeatmapPoints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [kpis, setKpis] = useState({
@@ -173,7 +175,7 @@ export default function AdminHeatmapView() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
           <ShieldAlert size={18} color="var(--risk-critical)" />
           <div>
-            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Very High Risk Cells</div>
+            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>{t('ui.kpi_critical_cells')}</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
               {loading ? '...' : `${kpis.criticalCount.toLocaleString()} Grid Cells`}
             </div>
@@ -183,7 +185,7 @@ export default function AdminHeatmapView() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
           <AlertTriangle size={18} color="var(--risk-high)" />
           <div>
-            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>High Risk Cells</div>
+            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>{t('ui.kpi_high_cells')}</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
               {loading ? '...' : `${kpis.highCount.toLocaleString()} Grid Cells`}
             </div>
@@ -193,7 +195,7 @@ export default function AdminHeatmapView() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
           <FileText size={18} color="var(--primary-600)" />
           <div>
-            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Citizen Incident Reports</div>
+            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>{t('ui.kpi_monitored_cells')}</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
               {unverifiedCount} Pending
             </div>
@@ -203,7 +205,7 @@ export default function AdminHeatmapView() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Layers size={18} color="var(--secondary-700)" />
           <div>
-            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Average Susceptibility</div>
+            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>{t('ui.kpi_avg_susceptibility')}</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
               {loading ? '...' : `${kpis.avgScore}%`}
             </div>

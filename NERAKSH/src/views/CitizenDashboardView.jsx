@@ -144,28 +144,92 @@ export default function CitizenDashboardView({ currentUser }) {
     }
   };
 
-  const handleIncidentSubmit = (e) => {
+  const handleIncidentSubmit = async (e) => {
     e.preventDefault();
-    if (!reportText) return;
+    if (!reportText.trim()) return;
 
-    const newReport = {
-      id: Date.now(),
+    let latVal = 27.33;
+    let lonVal = 88.61;
+    let assessedRisk = 'High';
+
+    if (aiAnalysisResults.length > 0) {
+      const lastAnalysis = aiAnalysisResults[aiAnalysisResults.length - 1];
+      if (lastAnalysis.geotag && lastAnalysis.geotag.lat && lastAnalysis.geotag.lon) {
+        latVal = parseFloat(lastAnalysis.geotag.lat);
+        lonVal = parseFloat(lastAnalysis.geotag.lon);
+      }
+      if (lastAnalysis.analysis && lastAnalysis.analysis.risk_level) {
+        assessedRisk = lastAnalysis.analysis.risk_level;
+      }
+    }
+
+    const payload = {
       category: selectedCategory,
-      location: locationName,
-      time: 'Just Now',
-      status: isOnline ? 'Synced to NDMA Grid' : 'Saved Offline (Pending Sync)',
-      mediaCount: mediaFiles.length,
-      riskLevel: 'High'
+      description: reportText,
+      latitude: latVal,
+      longitude: lonVal,
+      risk_level: assessedRisk,
+      location_name: locationName
     };
 
-    setSubmittedReports([newReport, ...submittedReports]);
-    if (!isOnline) {
+    if (isOnline) {
+      try {
+        const res = await fetch('http://localhost:8000/api/incidents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const newReport = {
+            id: data.incident.id,
+            category: data.incident.category,
+            location: locationName || `${latVal.toFixed(3)}°N, ${lonVal.toFixed(3)}°E`,
+            time: 'Just Now',
+            status: 'Synced to NDMA Grid',
+            mediaCount: mediaFiles.length,
+            riskLevel: data.incident.risk_level || assessedRisk
+          };
+          setSubmittedReports(prev => [newReport, ...prev]);
+          alert('Incident report transmitted live to NDMA Control Room & NDRF Field Officers!');
+        } else {
+          throw new Error(`API response status ${res.status}`);
+        }
+      } catch (err) {
+        console.error('Failed to submit incident:', err);
+        const fallbackReport = {
+          id: Date.now(),
+          category: selectedCategory,
+          location: locationName,
+          time: 'Just Now',
+          status: 'Saved Offline (Pending Sync)',
+          mediaCount: mediaFiles.length,
+          riskLevel: assessedRisk
+        };
+        setSubmittedReports(prev => [fallbackReport, ...prev]);
+        setPendingSyncCount(prev => prev + 1);
+        setSyncStatus(`Offline (${pendingSyncCount + 1} pending)`);
+        alert('Connection error. Incident report saved locally and queued for auto-sync.');
+      }
+    } else {
+      const offlineReport = {
+        id: Date.now(),
+        category: selectedCategory,
+        location: locationName,
+        time: 'Just Now',
+        status: 'Saved Offline (Pending Sync)',
+        mediaCount: mediaFiles.length,
+        riskLevel: assessedRisk
+      };
+      setSubmittedReports(prev => [offlineReport, ...prev]);
       setPendingSyncCount(prev => prev + 1);
       setSyncStatus(`Offline (${pendingSyncCount + 1} pending)`);
+      alert('Offline mode active. Incident report saved locally and queued for sync.');
     }
+
     setReportText('');
     setMediaFiles([]);
-    alert(isOnline ? 'Incident report transmitted to Disaster Control Room!' : 'Network unavailable. Incident saved offline and will sync automatically when reconnected.');
   };
 
   const handleSyncNow = () => {

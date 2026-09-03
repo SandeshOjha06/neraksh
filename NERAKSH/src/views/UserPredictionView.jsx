@@ -56,7 +56,7 @@ export default function UserPredictionView() {
 
   useEffect(() => {
     fetchData();
-    const intervalId = setInterval(fetchData, 15000);
+    const intervalId = setInterval(fetchData, 5000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -322,14 +322,77 @@ export default function UserPredictionView() {
             {activeTab === 'incidents' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>Nearby Unverified Incidents</h3>
-                  {situationalData.incidents?.filter(i => i.status === 'Unverified').map(inc => (
-                    <div key={inc.id} style={{ fontSize: '13px', padding: '12px', border: '1px solid #eee', borderRadius: '6px', marginBottom: '8px' }}>
-                      <strong>{inc.category}</strong>
-                      <p style={{ margin: '4px 0', color: '#666' }}>{inc.description}</p>
-                      <button onClick={() => openVerifyModal(inc)} style={{ marginTop: '4px', padding: '6px 12px', background: 'var(--primary-600)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Verify on Map</button>
-                    </div>
-                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <AlertCircle size={16} color="var(--risk-critical)" />
+                      Unverified Citizen Reports
+                    </h3>
+                    <span style={{ backgroundColor: 'var(--risk-critical-bg)', color: 'var(--risk-critical)', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 700 }}>
+                      {situationalData.incidents?.filter(i => i.status === 'Unverified').length || 0} PENDING
+                    </span>
+                  </div>
+                  
+                  {(!situationalData.incidents || situationalData.incidents.filter(i => i.status === 'Unverified').length === 0) ? (
+                    <p style={{ color: 'var(--neutral-500)', fontSize: '13px', fontStyle: 'italic' }}>No unverified citizen reports pending.</p>
+                  ) : (
+                    situationalData.incidents.filter(i => i.status === 'Unverified').map(inc => (
+                      <div key={inc.id} style={{
+                        fontSize: '13px',
+                        padding: '14px',
+                        border: '1px solid var(--neutral-200)',
+                        borderLeft: '4px solid var(--risk-high)',
+                        borderRadius: '8px',
+                        marginBottom: '10px',
+                        backgroundColor: '#ffffff'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <strong style={{ fontSize: '14px', color: 'var(--neutral-900)' }}>{inc.category}</strong>
+                          <span className={`risk-chip risk-${(inc.risk_level || 'high').toLowerCase()}`}>
+                            {inc.risk_level || 'High'}
+                          </span>
+                        </div>
+                        <p style={{ margin: '4px 0 8px 0', color: 'var(--neutral-700)', lineHeight: '1.4' }}>{inc.description}</p>
+                        <div style={{ fontSize: '11px', color: 'var(--neutral-500)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <MapPin size={12} />
+                          {inc.lat ? `${inc.lat.toFixed(4)}°N, ${inc.lon.toFixed(4)}°E` : 'Gangtok Zone'}
+                        </div>
+                        <button
+                          onClick={() => openVerifyModal(inc)}
+                          className="btn-primary"
+                          style={{ width: '100%', padding: '8px 12px', fontSize: '12px', justifyContent: 'center' }}
+                        >
+                          Conduct Ground Verification
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--neutral-200)', paddingTop: '14px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px', color: 'var(--neutral-800)' }}>
+                    Verified Ground Incidents
+                  </h3>
+                  {situationalData.incidents?.filter(i => i.status === 'Verified').length === 0 ? (
+                    <p style={{ color: 'var(--neutral-500)', fontSize: '12px' }}>No verified incidents logged.</p>
+                  ) : (
+                    situationalData.incidents?.filter(i => i.status === 'Verified').map(inc => (
+                      <div key={inc.id} style={{
+                        fontSize: '12px',
+                        padding: '10px 12px',
+                        border: '1px solid var(--neutral-200)',
+                        borderLeft: '4px solid var(--risk-low)',
+                        borderRadius: '6px',
+                        marginBottom: '8px',
+                        backgroundColor: 'var(--neutral-50)'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+                          <span>{inc.category}</span>
+                          <span style={{ color: 'var(--risk-low)', textTransform: 'uppercase' }}>VERIFIED</span>
+                        </div>
+                        <p style={{ margin: '4px 0 0 0', color: 'var(--neutral-600)' }}>{inc.description}</p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}

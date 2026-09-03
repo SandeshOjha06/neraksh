@@ -159,10 +159,8 @@ export default function AdminHeatmapView() {
         gap: '16px',
         zIndex: 500
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
-          <div style={{ backgroundColor: 'var(--risk-critical-bg)', padding: '10px', borderRadius: '8px' }}>
-            <ShieldAlert size={20} color="var(--risk-critical)" />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+          <ShieldAlert size={18} color="var(--risk-critical)" />
           <div>
             <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Very High Risk Cells</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
@@ -171,10 +169,8 @@ export default function AdminHeatmapView() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
-          <div style={{ backgroundColor: 'var(--risk-high-bg)', padding: '10px', borderRadius: '8px' }}>
-            <AlertTriangle size={20} color="var(--risk-high)" />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+          <AlertTriangle size={18} color="var(--risk-high)" />
           <div>
             <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>High Risk Cells</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
@@ -183,10 +179,8 @@ export default function AdminHeatmapView() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
-          <div style={{ backgroundColor: 'var(--primary-50)', padding: '10px', borderRadius: '8px' }}>
-            <FileText size={20} color="var(--primary-600)" />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+          <FileText size={18} color="var(--primary-600)" />
           <div>
             <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Citizen Incident Reports</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
@@ -195,10 +189,8 @@ export default function AdminHeatmapView() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ backgroundColor: 'var(--secondary-50)', padding: '10px', borderRadius: '8px' }}>
-            <Layers size={20} color="var(--secondary-700)" />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Layers size={18} color="var(--secondary-700)" />
           <div>
             <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Average Susceptibility</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>

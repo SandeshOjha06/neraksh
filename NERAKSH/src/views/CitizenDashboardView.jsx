@@ -437,43 +437,40 @@ export default function CitizenDashboardView({ currentUser }) {
               </button>
             </div>
 
-            {/* Quick Action Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-              <div
+            {/* Quick Actions */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button
                 onClick={() => setActiveNav('local_risk')}
-                style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '10px', padding: '16px', cursor: 'pointer' }}
+                className="btn-secondary"
+                style={{ padding: '10px 16px', fontSize: '13px' }}
               >
-                <ShieldAlert size={24} color="var(--primary-600)" style={{ marginBottom: '8px' }} />
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>Local Risk Map</div>
-                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>Check 30km neighborhood grid susceptibility</div>
-              </div>
-
-              <div
+                <ShieldAlert size={16} color="var(--primary-600)" />
+                Local Risk Map
+              </button>
+              <button
                 onClick={() => setActiveNav('reporting')}
-                style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '10px', padding: '16px', cursor: 'pointer' }}
+                className="btn-secondary"
+                style={{ padding: '10px 16px', fontSize: '13px' }}
               >
-                <Camera size={24} color="var(--secondary-600)" style={{ marginBottom: '8px' }} />
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>Incident Reporting</div>
-                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>Report slope cracks or road blockages</div>
-              </div>
-
-              <div
+                <Camera size={16} color="var(--secondary-600)" />
+                Report Incident
+              </button>
+              <button
                 onClick={() => setActiveNav('offline_sync')}
-                style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '10px', padding: '16px', cursor: 'pointer' }}
+                className="btn-secondary"
+                style={{ padding: '10px 16px', fontSize: '13px' }}
               >
-                <RefreshCw size={24} color="var(--risk-high)" style={{ marginBottom: '8px' }} />
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>Offline State & Sync</div>
-                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>{pendingSyncCount} pending reports stored offline</div>
-              </div>
-
-              <div
+                <RefreshCw size={16} color="var(--risk-high)" />
+                Sync Status {pendingSyncCount > 0 && `(${pendingSyncCount} pending)`}
+              </button>
+              <button
                 onClick={() => setActiveNav('ai_assistant')}
-                style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '10px', padding: '16px', cursor: 'pointer' }}
+                className="btn-secondary"
+                style={{ padding: '10px 16px', fontSize: '13px' }}
               >
-                <Bot size={24} color="var(--primary-700)" style={{ marginBottom: '8px' }} />
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>AI Safety Assistant</div>
-                <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>Get instant SOP disaster guidance</div>
-              </div>
+                <Bot size={16} color="var(--primary-700)" />
+                AI Safety Assistant
+              </button>
             </div>
 
             {/* Recent Local Reports */}
@@ -806,9 +803,7 @@ export default function CitizenDashboardView({ currentUser }) {
               {notifications.map(notif => (
                 <div key={notif.id} style={{
                   backgroundColor: notif.isCritical ? 'var(--risk-critical-bg)' : '#ffffff',
-                  borderLeft: notif.unread ? '4px solid var(--risk-critical)' : '1px solid var(--neutral-200)',
-                  border: notif.isCritical ? '1px solid var(--risk-critical)' : undefined,
-                  borderLeftWidth: notif.unread ? '4px' : '1px',
+                  border: '1px solid var(--neutral-200)',
                   borderRadius: '8px',
                   padding: '14px 16px',
                   boxShadow: '0 2px 6px rgba(0,0,0,0.04)',

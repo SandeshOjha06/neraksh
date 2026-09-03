@@ -340,7 +340,6 @@ export default function UserPredictionView() {
                         fontSize: '13px',
                         padding: '14px',
                         border: '1px solid var(--neutral-200)',
-                        borderLeft: '4px solid var(--risk-high)',
                         borderRadius: '8px',
                         marginBottom: '10px',
                         backgroundColor: '#ffffff'
@@ -380,7 +379,6 @@ export default function UserPredictionView() {
                         fontSize: '12px',
                         padding: '10px 12px',
                         border: '1px solid var(--neutral-200)',
-                        borderLeft: '4px solid var(--risk-low)',
                         borderRadius: '6px',
                         marginBottom: '8px',
                         backgroundColor: 'var(--neutral-50)'

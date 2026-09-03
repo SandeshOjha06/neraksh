@@ -8,3 +8,4 @@ rasterio
 requests
 scikit-learn
 xgboost
+python-multipart

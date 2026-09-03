@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
-import { ShieldAlert, AlertTriangle, Layers, MapPin } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, Layers, MapPin, Bell, Clock } from 'lucide-react';
 import GisRasterHeatmapLayer from '../components/GisRasterHeatmapLayer';
 
 // Key strategic monitoring locations across North Eastern Region (NER) India
@@ -88,44 +88,48 @@ export default function AdminHeatmapView() {
     totalPoints: 0,
     avgScore: 0
   });
+  const [alerts, setAlerts] = useState([]);
 
   useEffect(() => {
-    async function fetchRegionalHeatmap() {
+    async function fetchData() {
       try {
         setLoading(true);
-        const res = await fetch('http://localhost:8000/api/heatmap/regional?step=1');
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        const json = await res.json();
-
+        const [heatmapRes, alertsRes] = await Promise.all([
+          fetch('http://localhost:8000/api/heatmap/regional?step=1'),
+          fetch('http://localhost:8000/api/alerts')
+        ]);
         
-        if (json.data && json.data.length > 0) {
-          setHeatmapPoints(json.data);
-          
-          let critical = 0;
-          let high = 0;
-          let sumScore = 0;
-          
-          json.data.forEach(p => {
-            sumScore += p.score;
-            if (p.severity === 'Critical' || p.score >= 0.75) critical++;
-            else if (p.severity === 'High' || p.score >= 0.50) high++;
-          });
-          
-          setKpis({
-            criticalCount: critical,
-            highCount: high,
-            totalPoints: json.data.length,
-            avgScore: (sumScore / json.data.length * 100).toFixed(1)
-          });
+        if (heatmapRes.ok) {
+          const json = await heatmapRes.json();
+          if (json.data && json.data.length > 0) {
+            setHeatmapPoints(json.data);
+            let critical = 0, high = 0, sumScore = 0;
+            json.data.forEach(p => {
+              sumScore += p.score;
+              if (p.severity === 'Critical' || p.score >= 0.75) critical++;
+              else if (p.severity === 'High' || p.score >= 0.50) high++;
+            });
+            setKpis({
+              criticalCount: critical,
+              highCount: high,
+              totalPoints: json.data.length,
+              avgScore: (sumScore / json.data.length * 100).toFixed(1)
+            });
+          }
+        }
+
+        if (alertsRes.ok) {
+          const alertsJson = await alertsRes.json();
+          setAlerts(alertsJson);
         }
       } catch (err) {
-        console.error('Failed to fetch regional heatmap:', err);
+        console.error('Failed to fetch dashboard data:', err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchRegionalHeatmap();
+    fetchData();
   }, []);
 
   return (
@@ -253,6 +257,73 @@ export default function AdminHeatmapView() {
             </CircleMarker>
           ))}
         </MapContainer>
+
+        {/* Live Active Alerts Panel */}
+        <div style={{
+          position: 'absolute',
+          top: '24px',
+          right: '24px',
+          width: '320px',
+          maxHeight: '400px',
+          backgroundColor: '#ffffff',
+          border: '1px solid var(--neutral-300)',
+          borderRadius: '12px',
+          boxShadow: '0 8px 24px rgba(15, 39, 71, 0.15)',
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            backgroundColor: 'var(--primary-900)',
+            color: '#ffffff',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '14px' }}>
+              <Bell size={18} color="var(--risk-critical)" />
+              Active Field Alerts
+            </div>
+            <div style={{ backgroundColor: 'var(--risk-critical)', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
+              {alerts.length} NEW
+            </div>
+          </div>
+          
+          <div style={{ padding: '12px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {alerts.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--neutral-500)', fontSize: '13px' }}>
+                No active critical alerts
+              </div>
+            ) : (
+              alerts.map(alert => (
+                <div key={alert.id} style={{
+                  backgroundColor: 'var(--risk-critical-bg)',
+                  border: '1px solid var(--risk-critical)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--risk-critical)', textTransform: 'uppercase' }}>
+                      {alert.severity} RISK
+                    </span>
+                    <span style={{ fontSize: '10px', color: 'var(--neutral-600)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Clock size={12} />
+                      {new Date(alert.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--neutral-900)', marginBottom: '4px', lineHeight: '1.4' }}>
+                    {alert.message}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--neutral-600)' }}>
+                    Loc: {alert.latitude.toFixed(4)}°N, {alert.longitude.toFixed(4)}°E
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
         {/* Scientific GIS Map Legend Matching Reference Standards */}
         <div style={{

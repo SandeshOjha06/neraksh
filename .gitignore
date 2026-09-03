@@ -1,0 +1,28 @@
+# Python virtual environments & bytecode
+venv/
+.venv/
+*/venv/
+*/.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Databases & local data
+*.db
+sql_app.db
+BACKEND/sql_app.db
+
+# Node dependencies & build artifacts
+node_modules/
+*/node_modules/
+dist/
+*/dist/
+dist-ssr/
+*.local
+
+# Environment variables & OS files
+.env
+.env.*
+.DS_Store
+.vscode/
+.idea/

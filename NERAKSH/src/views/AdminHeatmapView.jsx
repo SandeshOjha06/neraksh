@@ -90,18 +90,14 @@ export default function AdminHeatmapView() {
   });
   const [alerts, setAlerts] = useState([]);
   const [incidents, setIncidents] = useState([]);
-  const [sideTab, setSideTab] = useState('alerts'); // 'alerts' or 'incidents'
+  const [sideTab, setSideTab] = useState('alerts'); // 'alerts' or 'reports'
 
+  // Fetch static regional GIS susceptibility heatmap grid ONCE on mount to prevent map reloading/flicker
   useEffect(() => {
-    async function fetchData() {
+    async function fetchHeatmapData() {
       try {
         setLoading(true);
-        const [heatmapRes, alertsRes, sitRes] = await Promise.all([
-          fetch('http://localhost:8000/api/heatmap/regional?step=1'),
-          fetch('http://localhost:8000/api/alerts'),
-          fetch('http://localhost:8000/api/field/situational')
-        ]);
-        
+        const heatmapRes = await fetch('http://localhost:8000/api/heatmap/regional?step=1');
         if (heatmapRes.ok) {
           const json = await heatmapRes.json();
           if (json.data && json.data.length > 0) {
@@ -120,6 +116,23 @@ export default function AdminHeatmapView() {
             });
           }
         }
+      } catch (err) {
+        console.error('Failed to fetch regional heatmap data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchHeatmapData();
+  }, []);
+
+  // Poll live dynamic model alerts & user citizen reports every 5s silently
+  useEffect(() => {
+    async function fetchDynamicData() {
+      try {
+        const [alertsRes, sitRes] = await Promise.all([
+          fetch('http://localhost:8000/api/alerts'),
+          fetch('http://localhost:8000/api/field/situational')
+        ]);
 
         if (alertsRes.ok) {
           const alertsJson = await alertsRes.json();
@@ -133,14 +146,12 @@ export default function AdminHeatmapView() {
           }
         }
       } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
-      } finally {
-        setLoading(false);
+        console.error('Failed to fetch dynamic alerts/reports:', err);
       }
     }
 
-    fetchData();
-    const intervalId = setInterval(fetchData, 5000);
+    fetchDynamicData();
+    const intervalId = setInterval(fetchDynamicData, 5000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -184,7 +195,7 @@ export default function AdminHeatmapView() {
           <div>
             <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Citizen Incident Reports</div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
-              {incidents.length} ({unverifiedCount} Pending)
+              {unverifiedCount} Pending
             </div>
           </div>
         </div>
@@ -299,142 +310,7 @@ export default function AdminHeatmapView() {
           ))}
         </MapContainer>
 
-        {/* Live Active Alerts & Citizen Incidents Drawer Panel */}
-        <div style={{
-          position: 'absolute',
-          top: '24px',
-          right: '24px',
-          width: '360px',
-          maxHeight: '460px',
-          backgroundColor: '#ffffff',
-          border: '1px solid var(--neutral-300)',
-          borderRadius: '12px',
-          boxShadow: '0 8px 24px rgba(15, 39, 71, 0.15)',
-          zIndex: 1000,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden'
-        }}>
-          {/* Header Tabs */}
-          <div style={{
-            backgroundColor: 'var(--primary-900)',
-            color: '#ffffff',
-            display: 'flex',
-            borderBottom: '1px solid rgba(255,255,255,0.1)'
-          }}>
-            <button
-              onClick={() => setSideTab('alerts')}
-              style={{
-                flex: 1,
-                padding: '12px 14px',
-                border: 'none',
-                backgroundColor: sideTab === 'alerts' ? 'rgba(255,255,255,0.15)' : 'transparent',
-                color: '#ffffff',
-                fontWeight: 700,
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                cursor: 'pointer'
-              }}
-            >
-              <Bell size={15} color="var(--risk-critical)" />
-              Alerts ({alerts.length})
-            </button>
-            <button
-              onClick={() => setSideTab('incidents')}
-              style={{
-                flex: 1,
-                padding: '12px 14px',
-                border: 'none',
-                backgroundColor: sideTab === 'incidents' ? 'rgba(255,255,255,0.15)' : 'transparent',
-                color: '#ffffff',
-                fontWeight: 700,
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                cursor: 'pointer'
-              }}
-            >
-              <FileText size={15} color="var(--secondary-500)" />
-              Reports ({incidents.length})
-            </button>
-          </div>
-          
-          {/* Content Area */}
-          <div style={{ padding: '12px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
-            {sideTab === 'alerts' && (
-              alerts.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--neutral-500)', fontSize: '13px' }}>
-                  No active critical alerts
-                </div>
-              ) : (
-                alerts.map(alert => (
-                  <div key={alert.id} style={{
-                    backgroundColor: 'var(--risk-critical-bg)',
-                    border: '1px solid var(--risk-critical)',
-                    borderRadius: '8px',
-                    padding: '12px',
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--risk-critical)', textTransform: 'uppercase' }}>
-                        {alert.severity} RISK
-                      </span>
-                      <span style={{ fontSize: '10px', color: 'var(--neutral-600)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Clock size={12} />
-                        {new Date(alert.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--neutral-900)', marginBottom: '4px', lineHeight: '1.4' }}>
-                      {alert.message}
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--neutral-600)' }}>
-                      Loc: {alert.latitude.toFixed(4)}°N, {alert.longitude.toFixed(4)}°E
-                    </div>
-                  </div>
-                ))
-              )
-            )}
 
-            {sideTab === 'incidents' && (
-              incidents.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--neutral-500)', fontSize: '13px' }}>
-                  No citizen incidents reported yet.
-                </div>
-              ) : (
-                incidents.map(inc => (
-                  <div key={inc.id} style={{
-                    backgroundColor: inc.status === 'Unverified' ? '#fff5f5' : '#f4fbf7',
-                    border: `1px solid ${inc.status === 'Unverified' ? 'var(--risk-critical)' : 'var(--risk-low)'}`,
-                    borderRadius: '8px',
-                    padding: '12px'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: inc.status === 'Unverified' ? 'var(--risk-critical)' : 'var(--risk-low)' }}>
-                        {inc.status.toUpperCase()}
-                      </span>
-                      <span className={`risk-chip risk-${(inc.risk_level || 'high').toLowerCase()}`}>
-                        {inc.risk_level || 'High'}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--neutral-900)', marginBottom: '4px' }}>
-                      {inc.category}
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--neutral-700)', marginBottom: '6px', lineHeight: '1.4' }}>
-                      {inc.description}
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--neutral-500)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <MapPin size={11} /> {inc.lat ? `${inc.lat.toFixed(3)}°N, ${inc.lon.toFixed(3)}°E` : 'Gangtok'}
-                    </div>
-                  </div>
-                ))
-              )
-            )}
-          </div>
-        </div>
 
         {/* Scientific GIS Map Legend Matching Reference Standards */}
         <div style={{
@@ -443,9 +319,8 @@ export default function AdminHeatmapView() {
           right: '24px',
           backgroundColor: '#ffffff',
           border: '1px solid var(--neutral-300)',
-          borderRadius: '8px',
+          borderRadius: '0px',
           padding: '12px 16px',
-          boxShadow: '0 4px 16px rgba(15, 39, 71, 0.12)',
           zIndex: 1000,
           width: '230px'
         }}>

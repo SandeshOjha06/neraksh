@@ -303,7 +303,7 @@ export default function CitizenDashboardView({ currentUser }) {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '10px 12px',
-                    borderRadius: '8px',
+                    borderRadius: '0px',
                     border: 'none',
                     backgroundColor: isActive ? 'var(--primary-50)' : 'transparent',
                     color: isActive ? 'var(--primary-700)' : 'var(--neutral-700)',
@@ -321,7 +321,7 @@ export default function CitizenDashboardView({ currentUser }) {
                     <span style={{
                       backgroundColor: 'var(--risk-critical)',
                       color: '#ffffff',
-                      borderRadius: '10px',
+                      borderRadius: '0px',
                       padding: '2px 7px',
                       fontSize: '10px',
                       fontWeight: 700
@@ -349,7 +349,7 @@ export default function CitizenDashboardView({ currentUser }) {
             justifyContent: 'space-between',
             padding: '8px 12px',
             backgroundColor: isOnline ? 'var(--risk-low-bg)' : 'var(--risk-moderate-bg)',
-            borderRadius: '6px',
+            borderRadius: '4px',
             fontSize: '12px',
             fontWeight: 600,
             color: isOnline ? 'var(--risk-low)' : 'var(--risk-moderate)'
@@ -383,7 +383,7 @@ export default function CitizenDashboardView({ currentUser }) {
             <div style={{
               backgroundColor: 'var(--primary-900)',
               color: '#ffffff',
-              borderRadius: '12px',
+              borderRadius: '0px',
               padding: '24px',
               display: 'flex',
               alignItems: 'center',
@@ -395,7 +395,7 @@ export default function CitizenDashboardView({ currentUser }) {
                     backgroundColor: 'var(--risk-critical)', 
                     color: '#ffffff', 
                     padding: '12px 16px', 
-                    borderRadius: '8px', 
+                    borderRadius: '0px', 
                     border: '1px solid #ff4d4d',
                     marginBottom: '10px',
                     display: 'flex',
@@ -474,11 +474,11 @@ export default function CitizenDashboardView({ currentUser }) {
             </div>
 
             {/* Recent Local Reports */}
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '10px', padding: '20px' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '20px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px' }}>Your Reported Incidents</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {submittedReports.map(rep => (
-                  <div key={rep.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: 'var(--neutral-50)', borderRadius: '8px', border: '1px solid var(--neutral-200)' }}>
+                  <div key={rep.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: 'var(--neutral-50)', borderRadius: '0px', border: '1px solid var(--neutral-200)' }}>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: '13px' }}>{rep.category}</div>
                       <div style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>{rep.location} — {rep.time}</div>
@@ -509,23 +509,29 @@ export default function CitizenDashboardView({ currentUser }) {
               <span className="risk-chip risk-high">ZONE ELEVATION: 1,650m</span>
             </div>
 
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                <div style={{ backgroundColor: 'var(--neutral-50)', padding: '12px', borderRadius: '8px', border: '1px solid var(--neutral-200)' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(3, 1fr)', 
+                backgroundColor: '#ffffff',
+                border: '1px solid var(--neutral-200)',
+                borderRadius: '0px'
+              }}>
+                <div style={{ padding: '16px', borderRight: '1px solid var(--neutral-200)' }}>
                   <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600 }}>SOIL SATURATION</div>
                   <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--primary-800)' }}>82.4%</div>
                 </div>
-                <div style={{ backgroundColor: 'var(--neutral-50)', padding: '12px', borderRadius: '8px', border: '1px solid var(--neutral-200)' }}>
+                <div style={{ padding: '16px', borderRight: '1px solid var(--neutral-200)' }}>
                   <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600 }}>24H RAINFALL THRESHOLD</div>
                   <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--risk-high)' }}>120 mm (EXCEEDED)</div>
                 </div>
-                <div style={{ backgroundColor: 'var(--neutral-50)', padding: '12px', borderRadius: '8px', border: '1px solid var(--neutral-200)' }}>
+                <div style={{ padding: '16px' }}>
                   <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600 }}>EVACUATION STATUS</div>
                   <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--risk-low)' }}>Route Open (NH10)</div>
                 </div>
               </div>
 
-              <div style={{ height: '360px', backgroundColor: '#e5e9ec', borderRadius: '8px', border: '1px solid var(--neutral-300)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ height: '360px', backgroundColor: '#e5e9ec', borderRadius: '0px', border: '1px solid var(--neutral-300)', position: 'relative', overflow: 'hidden' }}>
                 <MapContainer
                   center={[27.33, 88.61]}
                   zoom={12}
@@ -562,7 +568,7 @@ export default function CitizenDashboardView({ currentUser }) {
               <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Directly notify State Disaster Management Authority (SDMA) & NDRF response teams</p>
             </div>
 
-            <form onSubmit={handleIncidentSubmit} style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={handleIncidentSubmit} style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--neutral-700)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
                   Hazard Category
@@ -570,7 +576,7 @@ export default function CitizenDashboardView({ currentUser }) {
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
                 >
                   <option value="Rockfall / Minor Landslide">Rockfall / Minor Landslide</option>
                   <option value="Major Slope Failure">Major Slope Failure</option>
@@ -589,7 +595,7 @@ export default function CitizenDashboardView({ currentUser }) {
                   value={locationName}
                   onChange={(e) => setLocationName(e.target.value)}
                   placeholder="e.g. NH10 Highway Mile 14"
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
                 />
               </div>
 
@@ -602,7 +608,7 @@ export default function CitizenDashboardView({ currentUser }) {
                   value={reportText}
                   onChange={(e) => setReportText(e.target.value)}
                   placeholder="Describe slope cracks, falling boulders, water mudness, or road damage..."
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--neutral-300)', fontSize: '13px', fontFamily: 'inherit' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px', fontFamily: 'inherit' }}
                 />
               </div>
 
@@ -643,7 +649,7 @@ export default function CitizenDashboardView({ currentUser }) {
             <div style={{
               border: '2px dashed var(--primary-600)',
               backgroundColor: 'var(--primary-50)',
-              borderRadius: '12px',
+              borderRadius: '0px',
               padding: '40px',
               textAlign: 'center',
               display: 'flex',
@@ -658,7 +664,7 @@ export default function CitizenDashboardView({ currentUser }) {
               <input type="file" multiple accept="image/*,video/*" onChange={handleMediaUpload} style={{ marginTop: '8px' }} />
             </div>
 
-            <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '16px', border: '1px solid var(--neutral-200)' }}>
+            <div style={{ backgroundColor: '#ffffff', borderRadius: '0px', padding: '16px', border: '1px solid var(--neutral-200)' }}>
               <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>AI Image Analysis Results</h4>
               {isAnalyzing && (
                 <div style={{ fontSize: '12px', color: 'var(--primary-600)', marginBottom: '12px', fontWeight: 'bold' }}>
@@ -670,9 +676,9 @@ export default function CitizenDashboardView({ currentUser }) {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {aiAnalysisResults.map((res, idx) => (
-                    <div key={idx} style={{ display: 'flex', gap: '16px', padding: '16px', backgroundColor: 'var(--neutral-50)', borderRadius: '8px', border: '1px solid var(--neutral-200)' }}>
+                    <div key={idx} style={{ display: 'flex', gap: '16px', padding: '16px', backgroundColor: 'var(--neutral-50)', borderRadius: '0px', border: '1px solid var(--neutral-200)' }}>
                       {res.imageUrl && (
-                        <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--neutral-300)' }}>
+                        <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '0px', overflow: 'hidden', border: '1px solid var(--neutral-300)' }}>
                           <img src={res.imageUrl} alt="Uploaded media" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                       )}
@@ -719,7 +725,7 @@ export default function CitizenDashboardView({ currentUser }) {
               <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Ensures continuous warning system operation even when cellular networks fail during disasters</p>
             </div>
 
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: '12px', color: 'var(--neutral-500)', fontWeight: 600 }}>SYNC ENGINE STATUS</div>
@@ -738,11 +744,11 @@ export default function CitizenDashboardView({ currentUser }) {
               <div>
                 <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>Cached Offline Map Bundles</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: 'var(--neutral-50)', borderRadius: '6px', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: 'var(--neutral-50)', borderRadius: '4px', fontSize: '12px' }}>
                     <span>Sikkim & North Bengal DEM 30m Grid</span>
                     <span style={{ color: 'var(--risk-low)', fontWeight: 700 }}>Cached (42 MB)</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: 'var(--neutral-50)', borderRadius: '6px', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: 'var(--neutral-50)', borderRadius: '4px', fontSize: '12px' }}>
                     <span>Offline Emergency SOP & Shelters</span>
                     <span style={{ color: 'var(--risk-low)', fontWeight: 700 }}>Cached (8 MB)</span>
                   </div>
@@ -760,7 +766,7 @@ export default function CitizenDashboardView({ currentUser }) {
               <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Automated emergency guidance trained on NDMA & GSI landslide response SOPs</p>
             </div>
 
-            <div style={{ flex: 1, backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '12px', display: 'flex', flexDirection: 'column', height: '420px' }}>
+            <div style={{ flex: 1, backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', display: 'flex', flexDirection: 'column', height: '420px' }}>
               <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {chatMessages.map((msg, idx) => (
                   <div key={idx} style={{
@@ -769,7 +775,7 @@ export default function CitizenDashboardView({ currentUser }) {
                     backgroundColor: msg.sender === 'user' ? 'var(--primary-600)' : 'var(--neutral-100)',
                     color: msg.sender === 'user' ? '#ffffff' : 'var(--neutral-900)',
                     padding: '10px 14px',
-                    borderRadius: '12px',
+                    borderRadius: '0px',
                     fontSize: '13px',
                     lineHeight: 1.4
                   }}>
@@ -784,7 +790,7 @@ export default function CitizenDashboardView({ currentUser }) {
                   value={inputQuery}
                   onChange={(e) => setInputQuery(e.target.value)}
                   placeholder="Ask AI about evacuation, slope safety, or weather..."
-                  style={{ flex: 1, padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
+                  style={{ flex: 1, padding: '10px 12px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
                 />
                 <button type="submit" className="btn-primary">
                   <Send size={16} />
@@ -804,9 +810,8 @@ export default function CitizenDashboardView({ currentUser }) {
                 <div key={notif.id} style={{
                   backgroundColor: notif.isCritical ? 'var(--risk-critical-bg)' : '#ffffff',
                   border: '1px solid var(--neutral-200)',
-                  borderRadius: '8px',
+                  borderRadius: '0px',
                   padding: '14px 16px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'flex-start'
@@ -829,7 +834,7 @@ export default function CitizenDashboardView({ currentUser }) {
           <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Citizen Profile</h2>
 
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--secondary-600)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontWeight: 700, fontSize: '20px' }}>
                   {currentUser?.full_name?.charAt(0) || 'A'}

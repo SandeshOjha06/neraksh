@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import AdminHeatmapView from './views/AdminHeatmapView';
+import AdminAnalyticsView from './views/AdminAnalyticsView';
+import AdminAlertsReportsView from './views/AdminAlertsReportsView';
 import UserPredictionView from './views/UserPredictionView';
 import CitizenDashboardView from './views/CitizenDashboardView';
 
 export default function App() {
   const [role, setRole] = useState('admin'); // 'admin', 'user', or 'citizen'
-  const [activeTab, setActiveTab] = useState('risk_map');
+  const [activeTab, setActiveTab] = useState('overview');
   const [currentUser, setCurrentUser] = useState(null);
 
   return (
@@ -29,7 +31,15 @@ export default function App() {
 
         {/* View Surface */}
         <main style={{ flex: 1, position: 'relative', height: '100%', overflow: 'hidden' }}>
-          {role === 'admin' && <AdminHeatmapView />}
+          {role === 'admin' && (
+            activeTab === 'alerts' ? (
+              <AdminAlertsReportsView />
+            ) : (activeTab === 'analytics' || activeTab === 'reports') ? (
+              <AdminAnalyticsView />
+            ) : (
+              <AdminHeatmapView />
+            )
+          )}
           {role === 'user' && <UserPredictionView />}
           {role === 'citizen' && <CitizenDashboardView currentUser={currentUser} />}
         </main>
@@ -37,5 +47,3 @@ export default function App() {
     </div>
   );
 }
-
-

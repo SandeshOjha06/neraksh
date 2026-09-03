@@ -1,0 +1,298 @@
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import { ShieldAlert, AlertTriangle, Layers, MapPin } from 'lucide-react';
+import GisRasterHeatmapLayer from '../components/GisRasterHeatmapLayer';
+
+// Key strategic monitoring locations across North Eastern Region (NER) India
+const monitoringStations = [
+  {
+    name: 'Gangtok - Mangan Corridor (Sikkim)',
+    severity: 'Critical',
+    riskScore: 0.88,
+    color: '#C92A2A',
+    fillColor: '#C92A2A',
+    center: [27.33, 88.61],
+    radius: 10,
+    rainfall: '145mm (72h)',
+    slope: '38.5°',
+    affectedVillages: 14,
+  },
+  {
+    name: 'Cherrapunji - Sohra Escarpment (Meghalaya)',
+    severity: 'High',
+    riskScore: 0.74,
+    color: '#E57A17',
+    fillColor: '#E57A17',
+    center: [25.27, 91.73],
+    radius: 10,
+    rainfall: '210mm (72h)',
+    slope: '34.0°',
+    affectedVillages: 22,
+  },
+  {
+    name: 'Haflong Hill Railway Zone (Dima Hasao, Assam)',
+    severity: 'High',
+    riskScore: 0.69,
+    color: '#E57A17',
+    fillColor: '#E57A17',
+    center: [25.17, 93.02],
+    radius: 10,
+    rainfall: '120mm (72h)',
+    slope: '29.2°',
+    affectedVillages: 18,
+  },
+  {
+    name: 'Bomdila - Tawang Highway Segment (Arunachal)',
+    severity: 'Moderate',
+    riskScore: 0.48,
+    color: '#D9A441',
+    fillColor: '#D9A441',
+    center: [27.26, 92.42],
+    radius: 8,
+    rainfall: '85mm (72h)',
+    slope: '26.8°',
+    affectedVillages: 9,
+  },
+  {
+    name: 'Kohima Bypass Slopes (Nagaland)',
+    severity: 'Moderate',
+    riskScore: 0.42,
+    color: '#D9A441',
+    fillColor: '#D9A441',
+    center: [25.67, 94.11],
+    radius: 8,
+    rainfall: '65mm (72h)',
+    slope: '24.1°',
+    affectedVillages: 11,
+  },
+  {
+    name: 'Guwahati Urban Fringe (Assam)',
+    severity: 'Low',
+    riskScore: 0.12,
+    color: '#159447',
+    fillColor: '#159447',
+    center: [26.15, 91.77],
+    radius: 7,
+    rainfall: '32mm (72h)',
+    slope: '8.4°',
+    affectedVillages: 5,
+  }
+];
+
+export default function AdminHeatmapView() {
+  const [heatmapPoints, setHeatmapPoints] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [kpis, setKpis] = useState({
+    criticalCount: 0,
+    highCount: 0,
+    totalPoints: 0,
+    avgScore: 0
+  });
+
+  useEffect(() => {
+    async function fetchRegionalHeatmap() {
+      try {
+        setLoading(true);
+        const res = await fetch('http://localhost:8000/api/heatmap/regional?step=1');
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        const json = await res.json();
+
+        
+        if (json.data && json.data.length > 0) {
+          setHeatmapPoints(json.data);
+          
+          let critical = 0;
+          let high = 0;
+          let sumScore = 0;
+          
+          json.data.forEach(p => {
+            sumScore += p.score;
+            if (p.severity === 'Critical' || p.score >= 0.75) critical++;
+            else if (p.severity === 'High' || p.score >= 0.50) high++;
+          });
+          
+          setKpis({
+            criticalCount: critical,
+            highCount: high,
+            totalPoints: json.data.length,
+            avgScore: (sumScore / json.data.length * 100).toFixed(1)
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch regional heatmap:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchRegionalHeatmap();
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', position: 'relative' }}>
+      {/* Top Operational KPI Bar */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderBottom: '1px solid var(--neutral-200)',
+        padding: '12px 24px',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '16px',
+        zIndex: 500
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+          <div style={{ backgroundColor: 'var(--risk-critical-bg)', padding: '10px', borderRadius: '8px' }}>
+            <ShieldAlert size={20} color="var(--risk-critical)" />
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Very High Risk Cells</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
+              {loading ? '...' : `${kpis.criticalCount.toLocaleString()} Grid Cells`}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+          <div style={{ backgroundColor: 'var(--risk-high-bg)', padding: '10px', borderRadius: '8px' }}>
+            <AlertTriangle size={20} color="var(--risk-high)" />
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>High Risk Cells</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
+              {loading ? '...' : `${kpis.highCount.toLocaleString()} Grid Cells`}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+          <div style={{ backgroundColor: 'var(--primary-50)', padding: '10px', borderRadius: '8px' }}>
+            <MapPin size={20} color="var(--primary-600)" />
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Monitored Spatial Cells</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
+              {loading ? 'Loading...' : `${kpis.totalPoints.toLocaleString()} Grid Cells`}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ backgroundColor: 'var(--secondary-50)', padding: '10px', borderRadius: '8px' }}>
+            <Layers size={20} color="var(--secondary-700)" />
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600, textTransform: 'uppercase' }}>Average Susceptibility</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--neutral-900)' }}>
+              {loading ? '...' : `${kpis.avgScore}%`}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Map Workspace */}
+      <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
+        <MapContainer
+          center={[26.20, 92.50]}
+          zoom={7}
+          style={{ width: '100%', height: '100%', background: '#e5e9ec' }}
+          zoomControl={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+
+          {/* Scientific GIS Raster Susceptibility Heatmap Layer */}
+          {heatmapPoints.length > 0 && (
+            <GisRasterHeatmapLayer
+              points={heatmapPoints}
+              cellSizeDeg={0.05}
+              showLandslidePoints={true}
+              opacity={0.85}
+            />
+          )}
+
+          {/* Monitoring Station Markers */}
+          {monitoringStations.map((station, idx) => (
+            <CircleMarker
+              key={idx}
+              center={station.center}
+              radius={station.radius}
+              pathOptions={{
+                color: '#ffffff',
+                fillColor: station.fillColor,
+                fillOpacity: 0.9,
+                weight: 2
+              }}
+            >
+              <Popup>
+                <div style={{ width: '230px', padding: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span className={`risk-chip risk-${station.severity.toLowerCase()}`}>
+                      {station.severity} RISK
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--neutral-500)' }}>
+                      Score: {(station.riskScore * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px', color: 'var(--neutral-900)' }}>
+                    {station.name}
+                  </h4>
+                  <div style={{ fontSize: '12px', color: 'var(--neutral-600)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div><strong>Antecedent Rain:</strong> {station.rainfall}</div>
+                    <div><strong>Terrain Slope:</strong> {station.slope}</div>
+                    <div><strong>Exposed Villages:</strong> {station.affectedVillages}</div>
+                  </div>
+                </div>
+              </Popup>
+            </CircleMarker>
+          ))}
+        </MapContainer>
+
+        {/* Scientific GIS Map Legend Matching Reference Standards */}
+        <div style={{
+          position: 'absolute',
+          bottom: '24px',
+          right: '24px',
+          backgroundColor: '#ffffff',
+          border: '1px solid var(--neutral-300)',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          boxShadow: '0 4px 16px rgba(15, 39, 71, 0.12)',
+          zIndex: 1000,
+          width: '230px'
+        }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--neutral-900)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            GIS Susceptibility Scale
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#0288D1', border: '1px solid #ffffff' }}></span>
+              <span>Landslides_SL (Monitored)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '14px', height: '14px', borderRadius: '2px', backgroundColor: '#B71C1C' }}></span>
+              <span>Very High (&ge; 0.75)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '14px', height: '14px', borderRadius: '2px', backgroundColor: '#E26D40' }}></span>
+              <span>High (0.60 - 0.75)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '14px', height: '14px', borderRadius: '2px', backgroundColor: '#FFF3B0', border: '1px solid #d4c78d' }}></span>
+              <span>Moderate (0.40 - 0.60)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '14px', height: '14px', borderRadius: '2px', backgroundColor: '#87C34B' }}></span>
+              <span>Low (0.20 - 0.40)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: '14px', height: '14px', borderRadius: '2px', backgroundColor: '#1E6B29' }}></span>
+              <span>Very Low (&lt; 0.20)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,10 @@
+fastapi
+sqlalchemy
+uvicorn
+joblib
+numpy
+pandas
+rasterio
+requests
+scikit-learn
+xgboost

@@ -452,7 +452,7 @@ export default function CitizenDashboardView({ currentUser }) {
 
             {/* Quick Actions */}
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <button
+              <div
                 onClick={() => setActiveNav('local_risk')}
                 className="btn-secondary"
                 style={{ padding: '10px 16px', fontSize: '13px' }}
@@ -460,7 +460,7 @@ export default function CitizenDashboardView({ currentUser }) {
                 <ShieldAlert size={24} color="var(--primary-600)" style={{ marginBottom: '8px' }} />
                 <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('ui.quick_action_grid_risk')}</div>
                 <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginTop: '4px' }}>{t('ui.quick_action_grid_risk_desc')}</div>
-            </div>
+              </div>
 
             <div
               onClick={() => setActiveNav('reporting')}
@@ -556,394 +556,393 @@ export default function CitizenDashboardView({ currentUser }) {
             })}
           </div>
         </div>
-    </div>
-  )
-}
-
-{/* LOCAL RISK MAP */ }
-{
-  activeNav === 'local_risk' && (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 700 }}>Local Community Risk Map</h2>
-          <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Showing high-resolution GIS landslide susceptibility grid in your vicinity (Gangtok-Mangan Sector)</p>
-        </div>
-        <span className="risk-chip risk-high">ZONE ELEVATION: 1,650m</span>
       </div>
+    )}
 
-      <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          backgroundColor: '#ffffff',
-          border: '1px solid var(--neutral-200)',
-          borderRadius: '0px'
-        }}>
-          <div style={{ padding: '16px', borderRight: '1px solid var(--neutral-200)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600 }}>SOIL SATURATION</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--primary-800)' }}>82.4%</div>
-          </div>
-          <div style={{ padding: '16px', borderRight: '1px solid var(--neutral-200)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600 }}>24H RAINFALL THRESHOLD</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--risk-high)' }}>120 mm (EXCEEDED)</div>
-          </div>
-          <div style={{ padding: '16px' }}>
-            <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600 }}>EVACUATION STATUS</div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--risk-low)' }}>Route Open (NH10)</div>
-          </div>
-        </div>
+    {/* LOCAL RISK MAP */}
+        {
+          activeNav === 'local_risk' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h2 style={{ fontSize: '18px', fontWeight: 700 }}>Local Community Risk Map</h2>
+                  <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Showing high-resolution GIS landslide susceptibility grid in your vicinity (Gangtok-Mangan Sector)</p>
+                </div>
+                <span className="risk-chip risk-high">ZONE ELEVATION: 1,650m</span>
+              </div>
 
-        <div style={{ height: '360px', backgroundColor: '#e5e9ec', borderRadius: '0px', border: '1px solid var(--neutral-300)', position: 'relative', overflow: 'hidden' }}>
-          <MapContainer
-            center={[27.33, 88.61]}
-            zoom={12}
-            style={{ width: '100%', height: '100%' }}
-            zoomControl={true}
-          >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--neutral-200)',
+                  borderRadius: '0px'
+                }}>
+                  <div style={{ padding: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600 }}>SOIL SATURATION</div>
+                    <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--primary-800)' }}>82.4%</div>
+                  </div>
+                  <div style={{ padding: '16px', borderRight: '1px solid var(--neutral-200)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600 }}>24H RAINFALL THRESHOLD</div>
+                    <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--risk-high)' }}>120 mm (EXCEEDED)</div>
+                  </div>
+                  <div style={{ padding: '16px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--neutral-500)', fontWeight: 600 }}>EVACUATION STATUS</div>
+                    <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--risk-low)' }}>Route Open (NH10)</div>
+                  </div>
+                </div>
 
-            <CircleMarker
-              center={[27.33, 88.61]}
-              radius={30}
-              pathOptions={{ color: 'var(--risk-critical)', fillColor: 'var(--risk-critical)', fillOpacity: 0.3, weight: 2 }}
-            >
-              <Popup>Your Location Zone (High Susceptibility)</Popup>
-            </CircleMarker>
+                <div style={{ height: '360px', backgroundColor: '#e5e9ec', borderRadius: '0px', border: '1px solid var(--neutral-300)', position: 'relative', overflow: 'hidden' }}>
+                  <MapContainer
+                    center={[27.33, 88.61]}
+                    zoom={12}
+                    style={{ width: '100%', height: '100%' }}
+                    zoomControl={true}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-            <Marker position={[27.33, 88.61]}>
-              <Popup>
-                <strong>Gangtok (27.33°N, 88.61°E)</strong><br />
-                Susceptibility Score: 0.78
-              </Popup>
-            </Marker>
-          </MapContainer>
-        </div>
-      </div>
-    </div>
-  )
-}
+                    <CircleMarker
+                      center={[27.33, 88.61]}
+                      radius={30}
+                      pathOptions={{ color: 'var(--risk-critical)', fillColor: 'var(--risk-critical)', fillOpacity: 0.3, weight: 2 }}
+                    >
+                      <Popup>Your Location Zone (High Susceptibility)</Popup>
+                    </CircleMarker>
 
-{/* INCIDENT REPORTING */ }
-{
-  activeNav === 'reporting' && (
-    <div style={{ maxWidth: '650px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div>
-        <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Citizen Incident Reporting</h2>
-        <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Directly notify State Disaster Management Authority (SDMA) & NDRF response teams</p>
-      </div>
-
-      <form onSubmit={handleIncidentSubmit} style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div>
-          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--neutral-700)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-            Hazard Category
-          </label>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
-          >
-            <option value="Rockfall / Minor Landslide">{t('incident.category_rockfall')}</option>
-            <option value="Major Slope Failure">{t('incident.category_major_failure')}</option>
-            <option value="Road Blockade due to Debris">{t('incident.category_road_blockade')}</option>
-            <option value="Creep / Ground Cracks">{t('incident.category_creep_cracks')}</option>
-            <option value="Mudflow / Flash Flood">{t('incident.category_mudflow')}</option>
-          </select>
-        </div>
-
-        <div>
-          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--neutral-700)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-            Landslide Location / Landmark
-          </label>
-          <input
-            type="text"
-            value={locationName}
-            onChange={(e) => setLocationName(e.target.value)}
-            placeholder="e.g. NH10 Highway Mile 14"
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
-          />
-        </div>
-
-        <div>
-          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--neutral-700)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-            Observation Details & Description
-          </label>
-          <textarea
-            rows={4}
-            value={reportText}
-            onChange={(e) => setReportText(e.target.value)}
-            placeholder="Describe slope cracks, falling boulders, water mudness, or road damage..."
-            style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px', fontFamily: 'inherit' }}
-          />
-        </div>
-
-        <div>
-          <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--neutral-700)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-            Attach Photo / Video Media
-          </label>
-          <input
-            type="file"
-            multiple
-            accept="image/*,video/*"
-            onChange={handleMediaUpload}
-            style={{ fontSize: '12px' }}
-          />
-          {mediaFiles.length > 0 && (
-            <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--primary-700)', fontWeight: 600 }}>
-              Attached Files ({mediaFiles.length}): {mediaFiles.join(', ')}
+                    <Marker position={[27.33, 88.61]}>
+                      <Popup>
+                        <strong>Gangtok (27.33°N, 88.61°E)</strong><br />
+                        Susceptibility Score: 0.78
+                      </Popup>
+                    </Marker>
+                  </MapContainer>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          )
+        }
 
-        <button type="submit" className="btn-primary" style={{ padding: '12px', justifyContent: 'center' }}>
-          <Send size={16} />
-          Submit Incident Report ({isOnline ? 'Live Transmit' : 'Store Offline'})
-        </button>
-      </form>
-    </div>
-  )
-}
+        {/* INCIDENT REPORTING */}
+        {
+          activeNav === 'reporting' && (
+            <div style={{ maxWidth: '650px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Citizen Incident Reporting</h2>
+                <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Directly notify State Disaster Management Authority (SDMA) & NDRF response teams</p>
+              </div>
 
-{/* MEDIA UPLOAD */ }
-{
-  activeNav === 'media' && (
-    <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div>
-        <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Media & Ground Imagery Upload</h2>
-        <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Upload geo-tagged slope photos for automatic AI damage estimation</p>
-      </div>
+              <form onSubmit={handleIncidentSubmit} style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--neutral-700)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                    Hazard Category
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
+                  >
+                    <option value="Rockfall / Minor Landslide">{t('incident.category_rockfall')}</option>
+                    <option value="Major Slope Failure">{t('incident.category_major_failure')}</option>
+                    <option value="Road Blockade due to Debris">{t('incident.category_road_blockade')}</option>
+                    <option value="Creep / Ground Cracks">{t('incident.category_creep_cracks')}</option>
+                    <option value="Mudflow / Flash Flood">{t('incident.category_mudflow')}</option>
+                  </select>
+                </div>
 
-      <div style={{
-        border: '2px dashed var(--primary-600)',
-        backgroundColor: 'var(--primary-50)',
-        borderRadius: '0px',
-        padding: '40px',
-        textAlign: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '12px',
-        cursor: 'pointer'
-      }}>
-        <Upload size={36} color="var(--primary-600)" />
-        <div style={{ fontWeight: 700, fontSize: '15px' }}>Drag & Drop photos/videos here</div>
-        <div style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Supports JPG, PNG, MP4 up to 50MB per file</div>
-        <input type="file" multiple accept="image/*,video/*" onChange={handleMediaUpload} style={{ marginTop: '8px' }} />
-      </div>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--neutral-700)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                    Landslide Location / Landmark
+                  </label>
+                  <input
+                    type="text"
+                    value={locationName}
+                    onChange={(e) => setLocationName(e.target.value)}
+                    placeholder="e.g. NH10 Highway Mile 14"
+                    style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
+                  />
+                </div>
 
-      <div style={{ backgroundColor: '#ffffff', borderRadius: '0px', padding: '16px', border: '1px solid var(--neutral-200)' }}>
-        <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>AI Image Analysis Results</h4>
-        {isAnalyzing && (
-          <div style={{ fontSize: '12px', color: 'var(--primary-600)', marginBottom: '12px', fontWeight: 'bold' }}>
-            Running deep learning model on uploaded media...
-          </div>
-        )}
-        {aiAnalysisResults.length === 0 && !isAnalyzing ? (
-          <div style={{ fontSize: '12px', color: 'var(--neutral-500)' }}>No pending uploads.</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {aiAnalysisResults.map((res, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: '16px', padding: '16px', backgroundColor: 'var(--neutral-50)', borderRadius: '0px', border: '1px solid var(--neutral-200)' }}>
-                {res.imageUrl && (
-                  <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '0px', overflow: 'hidden', border: '1px solid var(--neutral-300)' }}>
-                    <img src={res.imageUrl} alt="Uploaded media" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--neutral-700)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                    Observation Details & Description
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={reportText}
+                    onChange={(e) => setReportText(e.target.value)}
+                    placeholder="Describe slope cracks, falling boulders, water mudness, or road damage..."
+                    style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px', fontFamily: 'inherit' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--neutral-700)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                    Attach Photo / Video Media
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={handleMediaUpload}
+                    style={{ fontSize: '12px' }}
+                  />
+                  {mediaFiles.length > 0 && (
+                    <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--primary-700)', fontWeight: 600 }}>
+                      Attached Files ({mediaFiles.length}): {mediaFiles.join(', ')}
+                    </div>
+                  )}
+                </div>
+
+                <button type="submit" className="btn-primary" style={{ padding: '12px', justifyContent: 'center' }}>
+                  <Send size={16} />
+                  Submit Incident Report ({isOnline ? 'Live Transmit' : 'Store Offline'})
+                </button>
+              </form>
+            </div>
+          )
+        }
+
+        {/* MEDIA UPLOAD */}
+        {
+          activeNav === 'media' && (
+            <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Media & Ground Imagery Upload</h2>
+                <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Upload geo-tagged slope photos for automatic AI damage estimation</p>
+              </div>
+
+              <div style={{
+                border: '2px dashed var(--primary-600)',
+                backgroundColor: 'var(--primary-50)',
+                borderRadius: '0px',
+                padding: '40px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px',
+                cursor: 'pointer'
+              }}>
+                <Upload size={36} color="var(--primary-600)" />
+                <div style={{ fontWeight: 700, fontSize: '15px' }}>Drag & Drop photos/videos here</div>
+                <div style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Supports JPG, PNG, MP4 up to 50MB per file</div>
+                <input type="file" multiple accept="image/*,video/*" onChange={handleMediaUpload} style={{ marginTop: '8px' }} />
+              </div>
+
+              <div style={{ backgroundColor: '#ffffff', borderRadius: '0px', padding: '16px', border: '1px solid var(--neutral-200)' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>AI Image Analysis Results</h4>
+                {isAnalyzing && (
+                  <div style={{ fontSize: '12px', color: 'var(--primary-600)', marginBottom: '12px', fontWeight: 'bold' }}>
+                    Running deep learning model on uploaded media...
                   </div>
                 )}
-                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 700 }}>
-                      <FileImage size={16} color="var(--primary-600)" />
-                      {res.fileName}
-                    </span>
-                    <span style={{ color: res.analysis.risk_level === 'High' ? 'var(--risk-critical)' : (res.analysis.risk_level === 'Error' ? 'var(--neutral-500)' : 'var(--risk-moderate)'), fontWeight: 800, fontSize: '14px', textTransform: 'uppercase' }}>
-                      {res.analysis.risk_level} RISK
-                    </span>
-                  </div>
+                {aiAnalysisResults.length === 0 && !isAnalyzing ? (
+                  <div style={{ fontSize: '12px', color: 'var(--neutral-500)' }}>No pending uploads.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {aiAnalysisResults.map((res, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: '16px', padding: '16px', backgroundColor: 'var(--neutral-50)', borderRadius: '0px', border: '1px solid var(--neutral-200)' }}>
+                        {res.imageUrl && (
+                          <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '0px', overflow: 'hidden', border: '1px solid var(--neutral-300)' }}>
+                            <img src={res.imageUrl} alt="Uploaded media" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 700 }}>
+                              <FileImage size={16} color="var(--primary-600)" />
+                              {res.fileName}
+                            </span>
+                            <span style={{ color: res.analysis.risk_level === 'High' ? 'var(--risk-critical)' : (res.analysis.risk_level === 'Error' ? 'var(--neutral-500)' : 'var(--risk-moderate)'), fontWeight: 800, fontSize: '14px', textTransform: 'uppercase' }}>
+                              {res.analysis.risk_level} RISK
+                            </span>
+                          </div>
 
-                  {res.geotag && (
-                    <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <MapPin size={12} />
-                      Geotag Extracted: {parseFloat(res.geotag.lat).toFixed(4)}°N, {parseFloat(res.geotag.lon).toFixed(4)}°E
-                    </div>
-                  )}
+                          {res.geotag && (
+                            <div style={{ fontSize: '12px', color: 'var(--neutral-500)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <MapPin size={12} />
+                              Geotag Extracted: {parseFloat(res.geotag.lat).toFixed(4)}°N, {parseFloat(res.geotag.lon).toFixed(4)}°E
+                            </div>
+                          )}
 
-                  <div style={{ fontSize: '14px', color: 'var(--neutral-800)', marginBottom: '4px' }}>
-                    <strong>Estimate:</strong> {res.analysis.damage_estimate}
+                          <div style={{ fontSize: '14px', color: 'var(--neutral-800)', marginBottom: '4px' }}>
+                            <strong>Estimate:</strong> {res.analysis.damage_estimate}
+                          </div>
+                          {res.analysis.action_required && (
+                            <div style={{ fontSize: '13px', color: 'var(--primary-700)', fontWeight: 600 }}>
+                              Action: {res.analysis.action_required} (Confidence: {(res.analysis.confidence * 100).toFixed(0)}%)
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  {res.analysis.action_required && (
-                    <div style={{ fontSize: '13px', color: 'var(--primary-700)', fontWeight: 600 }}>
-                      Action: {res.analysis.action_required} (Confidence: {(res.analysis.confidence * 100).toFixed(0)}%)
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-{/* OFFLINE STATE & SYNC */ }
-{
-  activeNav === 'offline_sync' && (
-    <div style={{ maxWidth: '650px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div>
-        <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Offline State & Sync Center</h2>
-        <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Ensures continuous warning system operation even when cellular networks fail during disasters</p>
-      </div>
-
-      <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: '12px', color: 'var(--neutral-500)', fontWeight: 600 }}>SYNC ENGINE STATUS</div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: isOnline ? 'var(--risk-low)' : 'var(--risk-moderate)' }}>
-              {syncStatus}
             </div>
-          </div>
-          <button onClick={handleSyncNow} className="btn-primary" style={{ padding: '10px 16px', fontSize: '13px' }}>
-            <RefreshCw size={14} />
-            Force Sync Now
-          </button>
-        </div>
+          )
+        }
 
-        <hr style={{ border: 'none', borderTop: '1px solid var(--neutral-200)' }} />
-
-        <div>
-          <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>Cached Offline Map Bundles</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: 'var(--neutral-50)', borderRadius: '4px', fontSize: '12px' }}>
-              <span>Sikkim & North Bengal DEM 30m Grid</span>
-              <span style={{ color: 'var(--risk-low)', fontWeight: 700 }}>Cached (42 MB)</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: 'var(--neutral-50)', borderRadius: '4px', fontSize: '12px' }}>
-              <span>Offline Emergency SOP & Shelters</span>
-              <span style={{ color: 'var(--risk-low)', fontWeight: 700 }}>Cached (8 MB)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{/* AI ASSISTANT */ }
-{
-  activeNav === 'ai_assistant' && (
-    <div style={{ maxWidth: '700px', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div>
-        <h2 style={{ fontSize: '20px', fontWeight: 700 }}>NERAKSH AI Safety Assistant</h2>
-        <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Automated emergency guidance trained on NDMA & GSI landslide response SOPs</p>
-      </div>
-
-      <div style={{ flex: 1, backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', display: 'flex', flexDirection: 'column', height: '420px' }}>
-        <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {chatMessages.map((msg, idx) => (
-            <div key={idx} style={{
-              alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-              maxWidth: '80%',
-              backgroundColor: msg.sender === 'user' ? 'var(--primary-600)' : 'var(--neutral-100)',
-              color: msg.sender === 'user' ? '#ffffff' : 'var(--neutral-900)',
-              padding: '10px 14px',
-              borderRadius: '0px',
-              fontSize: '13px',
-              lineHeight: 1.4
-            }}>
-              {msg.text}
-            </div>
-          ))}
-        </div>
-
-        <form onSubmit={handleSendMessage} style={{ borderTop: '1px solid var(--neutral-200)', padding: '12px', display: 'flex', gap: '8px' }}>
-          <input
-            type="text"
-            value={inputQuery}
-            onChange={(e) => setInputQuery(e.target.value)}
-            placeholder="Ask AI about evacuation, slope safety, or weather..."
-            style={{ flex: 1, padding: '10px 12px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
-          />
-          <button type="submit" className="btn-primary">
-            <Send size={16} />
-          </button>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-{/* NOTIFICATIONS */ }
-{
-  activeNav === 'notifications' && (
-    <div style={{ maxWidth: '650px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <h2 style={{ fontSize: '20px', fontWeight: 700 }}>{t('ui.citizen_alert_center')}</h2>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {notifications.map(notif => {
-          // API-sourced alerts have structured severity/lat/lon; static ones have titleKey/descKey
-          const isApiAlert = 'severity' in notif;
-          const displayTitle = isApiAlert
-            ? `[NDMA] ${getSeverityLabel(notif.severity).toUpperCase()} ${t('notification.landslide_risk_alert')}`
-            : t(notif.titleKey);
-          const displayDesc = isApiAlert
-            ? `${t('notification.landslide_warning')} (${t('alert.location_label')}: ${notif.latitude.toFixed(4)}°N, ${notif.longitude.toFixed(4)}°E)`
-            : t(notif.descKey);
-          return (
-            <div key={notif.id} style={{
-              backgroundColor: notif.isCritical ? 'var(--risk-critical-bg)' : '#ffffff',
-              borderLeft: notif.unread ? '4px solid var(--risk-critical)' : '1px solid var(--neutral-200)',
-              border: notif.isCritical ? '1px solid var(--risk-critical)' : undefined,
-              borderLeftWidth: notif.unread ? '4px' : '1px',
-              borderRadius: '8px',
-              padding: '14px 16px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start'
-            }}>
+        {/* OFFLINE STATE & SYNC */}
+        {
+          activeNav === 'offline_sync' && (
+            <div style={{ maxWidth: '650px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: '14px', color: notif.isCritical ? 'var(--risk-critical)' : 'inherit' }}>
-                  {displayTitle}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--neutral-600)', marginTop: '2px' }}>{displayDesc}</div>
+                <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Offline State & Sync Center</h2>
+                <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Ensures continuous warning system operation even when cellular networks fail during disasters</p>
               </div>
-              <span style={{ fontSize: '10px', color: 'var(--neutral-400)' }}>{notif.time}</span>
+
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'var(--neutral-500)', fontWeight: 600 }}>SYNC ENGINE STATUS</div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: isOnline ? 'var(--risk-low)' : 'var(--risk-moderate)' }}>
+                      {syncStatus}
+                    </div>
+                  </div>
+                  <button onClick={handleSyncNow} className="btn-primary" style={{ padding: '10px 16px', fontSize: '13px' }}>
+                    <RefreshCw size={14} />
+                    Force Sync Now
+                  </button>
+                </div>
+
+                <hr style={{ border: 'none', borderTop: '1px solid var(--neutral-200)' }} />
+
+                <div>
+                  <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>Cached Offline Map Bundles</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: 'var(--neutral-50)', borderRadius: '4px', fontSize: '12px' }}>
+                      <span>Sikkim & North Bengal DEM 30m Grid</span>
+                      <span style={{ color: 'var(--risk-low)', fontWeight: 700 }}>Cached (42 MB)</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: 'var(--neutral-50)', borderRadius: '4px', fontSize: '12px' }}>
+                      <span>Offline Emergency SOP & Shelters</span>
+                      <span style={{ color: 'var(--risk-low)', fontWeight: 700 }}>Cached (8 MB)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          );
-        })}
-      </div>
-    </div>
-  )
-}
+          )
+        }
 
-{/* PROFILE */ }
-{
-  activeNav === 'profile' && (
-    <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Citizen Profile</h2>
+        {/* AI ASSISTANT */}
+        {
+          activeNav === 'ai_assistant' && (
+            <div style={{ maxWidth: '700px', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <h2 style={{ fontSize: '20px', fontWeight: 700 }}>NERAKSH AI Safety Assistant</h2>
+                <p style={{ fontSize: '12px', color: 'var(--neutral-600)' }}>Automated emergency guidance trained on NDMA & GSI landslide response SOPs</p>
+              </div>
 
-      <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--secondary-600)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontWeight: 700, fontSize: '20px' }}>
-            {currentUser?.full_name?.charAt(0) || 'A'}
-          </div>
-          <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{currentUser?.full_name || 'Anita Roy'}</h3>
-            <div style={{ fontSize: '12px', color: 'var(--neutral-500)' }}>Registered Citizen (Gangtok, Sikkim)</div>
-          </div>
-        </div>
+              <div style={{ flex: 1, backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', display: 'flex', flexDirection: 'column', height: '420px' }}>
+                <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {chatMessages.map((msg, idx) => (
+                    <div key={idx} style={{
+                      alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                      maxWidth: '80%',
+                      backgroundColor: msg.sender === 'user' ? 'var(--primary-600)' : 'var(--neutral-100)',
+                      color: msg.sender === 'user' ? '#ffffff' : 'var(--neutral-900)',
+                      padding: '10px 14px',
+                      borderRadius: '0px',
+                      fontSize: '13px',
+                      lineHeight: 1.4
+                    }}>
+                      {msg.text}
+                    </div>
+                  ))}
+                </div>
 
-        <hr style={{ border: 'none', borderTop: '1px solid var(--neutral-200)' }} />
+                <form onSubmit={handleSendMessage} style={{ borderTop: '1px solid var(--neutral-200)', padding: '12px', display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={inputQuery}
+                    onChange={(e) => setInputQuery(e.target.value)}
+                    placeholder="Ask AI about evacuation, slope safety, or weather..."
+                    style={{ flex: 1, padding: '10px 12px', borderRadius: '4px', border: '1px solid var(--neutral-300)', fontSize: '13px' }}
+                  />
+                  <button type="submit" className="btn-primary">
+                    <Send size={16} />
+                  </button>
+                </form>
+              </div>
+            </div>
+          )
+        }
 
-        <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div><strong>Email:</strong> {currentUser?.email || 'anita.roy@gmail.com'}</div>
-          <div><strong>Role Access Level:</strong> Citizen / Local Community Member</div>
-          <div><strong>Offline Sync Token:</strong> Registered (Active)</div>
-        </div>
-      </div>
-    </div>
-  )
-}
+        {/* NOTIFICATIONS */}
+        {
+          activeNav === 'notifications' && (
+            <div style={{ maxWidth: '650px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700 }}>{t('ui.citizen_alert_center')}</h2>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {notifications.map(notif => {
+                  // API-sourced alerts have structured severity/lat/lon; static ones have titleKey/descKey
+                  const isApiAlert = 'severity' in notif;
+                  const displayTitle = isApiAlert
+                    ? `[NDMA] ${getSeverityLabel(notif.severity).toUpperCase()} ${t('notification.landslide_risk_alert')}`
+                    : t(notif.titleKey);
+                  const displayDesc = isApiAlert
+                    ? `${t('notification.landslide_warning')} (${t('alert.location_label')}: ${notif.latitude.toFixed(4)}°N, ${notif.longitude.toFixed(4)}°E)`
+                    : t(notif.descKey);
+                  return (
+                    <div key={notif.id} style={{
+                      backgroundColor: notif.isCritical ? 'var(--risk-critical-bg)' : '#ffffff',
+                      borderLeft: notif.unread ? '4px solid var(--risk-critical)' : '1px solid var(--neutral-200)',
+                      border: notif.isCritical ? '1px solid var(--risk-critical)' : undefined,
+                      borderLeftWidth: notif.unread ? '4px' : '1px',
+                      borderRadius: '8px',
+                      padding: '14px 16px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start'
+                    }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '14px', color: notif.isCritical ? 'var(--risk-critical)' : 'inherit' }}>
+                          {displayTitle}
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--neutral-600)', marginTop: '2px' }}>{displayDesc}</div>
+                      </div>
+                      <span style={{ fontSize: '10px', color: 'var(--neutral-400)' }}>{notif.time}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )
+        }
+
+        {/* PROFILE */}
+        {
+          activeNav === 'profile' && (
+            <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700 }}>Citizen Profile</h2>
+
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--neutral-200)', borderRadius: '0px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--secondary-600)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontWeight: 700, fontSize: '20px' }}>
+                    {currentUser?.full_name?.charAt(0) || 'A'}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{currentUser?.full_name || 'Anita Roy'}</h3>
+                    <div style={{ fontSize: '12px', color: 'var(--neutral-500)' }}>Registered Citizen (Gangtok, Sikkim)</div>
+                  </div>
+                </div>
+
+                <hr style={{ border: 'none', borderTop: '1px solid var(--neutral-200)' }} />
+
+                <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div><strong>Email:</strong> {currentUser?.email || 'anita.roy@gmail.com'}</div>
+                  <div><strong>Role Access Level:</strong> Citizen / Local Community Member</div>
+                  <div><strong>Offline Sync Token:</strong> Registered (Active)</div>
+                </div>
+              </div>
+            </div>
+          )
+        }
       </main >
     </div >
   );

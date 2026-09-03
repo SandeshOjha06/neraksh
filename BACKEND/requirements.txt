@@ -6,6 +6,7 @@ numpy
 pandas
 rasterio
 requests
+python-multipart
 scikit-learn
 xgboost
 python-multipart
